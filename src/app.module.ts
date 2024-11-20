@@ -12,6 +12,8 @@ import { HttpErrorFilter } from './interceptors/httpError.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { AirportModule } from './modules/airport/airport.module';
+
 
 @Module({
   imports: [
@@ -53,7 +55,8 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
     }),
     DatabaseModule,
     UserModule,
-    AuthModule
+    AuthModule,
+    AirportModule
   ],
   controllers: [AppController],
   providers: [
