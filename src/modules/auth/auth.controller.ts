@@ -1,37 +1,85 @@
 import {
 	Body,
 	Controller,
-	Patch,
+	Get,
 	Post,
+	Query,
 	Req,
-	Res,
 	UseGuards,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { RequestWithUser } from 'src/types/requests.type';
-import { JwtRefreshTokenGuard } from './guards/jwt-refresh-token.guard';
-import {
+  } from '@nestjs/common';
+  import { AuthService } from './auth.service';
+  import { AuthDto, AuthResponseDto,} from './dto/auth.dto';
+  import {
 	ApiBearerAuth,
-	ApiBody,
 	ApiOperation,
 	ApiResponse,
 	ApiTags,
-} from '@nestjs/swagger';
-import { EmailDto } from '../../common/dto/email.dto';
-import { UpdatePasswordDto } from '@modules/auth/dto/update-password.dto';
-import { AppResponse, ResponseMessage } from '../../types/common.type';
-// import { User } from '@modules/users/entities/user.entity';
-import { Observable } from 'rxjs';
-import { JwtAccessTokenGuard } from '@modules/auth/guards/jwt-access-token.guard';
-import { UpdatePasswordByCodeDto } from '@modules/auth/dto/update-password-by-code.dto';
-import { SignInDto } from '@modules/auth/dto/sign-in.dto';
-import { UpdateInfoDto } from '@modules/auth/dto/update-info.dto';
-import { Response } from 'express';
-import { CurrentUserDecorator } from '../../decorators/current-user.decorator';
-import { VerifyCodeByEmailDto } from '@modules/auth/dto';
+  } from '@nestjs/swagger';
+import { CurrentUserDecorator } from 'src/decorators/current-user.decorator';
 import { User } from '@modules/users/entity/user.entity';
-
-@Controller('auth')
-export class AuthController {
-	constructor(private readonly authService: AuthService) {}
-}
+import { CreateNewUserDto } from '@modules/users/dto/createNewUser.dto';
+import { JwtRefreshTokenGuard } from './guards/jwt-refresh-token.guard';
+import { VerifyService } from '@modules/queue/verify.service';
+  
+  @ApiTags('auth')
+  @Controller('auth')
+  export class AuthController {
+	constructor(
+		private authService: AuthService,
+		private readonly verifyService: VerifyService,
+	) {}
+  
+	@Post('signup')
+	@ApiOperation({ summary: 'Sign up a new user' })
+	@ApiResponse({
+	  status: 200,
+	  description: 'User successfully signed in.',
+	  type: AuthResponseDto,
+	})
+	@ApiResponse({ status: 400, description: 'Bad request.' })
+	signup(@Body() createUserDto: CreateNewUserDto) {
+	  try {
+		return this.authService.signUp(createUserDto);
+	  } catch (error) {
+		console.log(error);
+	  }
+	}
+  
+	@Post('signin')
+	@ApiOperation({ summary: 'Sign in an existing user' })
+	@ApiResponse({
+	  status: 200,
+	  description: 'User successfully signed in.',
+	  type: AuthResponseDto,
+	})
+	@ApiResponse({ status: 400, description: 'Bad request.' })
+	signin(@Body() data: AuthDto) {
+	  return this.authService.signIn(data);
+	}
+  
+	@UseGuards(JwtRefreshTokenGuard)
+	@Get('refresh')
+	@ApiOperation({ summary: 'Refresh tokens using the refresh token' })
+	@ApiBearerAuth()
+	@ApiResponse({
+	  status: 200,
+	  description: 'User successfully signed in.',
+	  type: AuthResponseDto,
+	})
+	@ApiResponse({ status: 400, description: 'Bad request.' })
+	refreshTokens(@CurrentUserDecorator() user:User) {
+	  const userId = user.id;
+	  const refreshToken = user.refreshToken;
+	  console.log(userId, refreshToken);
+	  return this.authService.refreshTokens(userId, refreshToken);
+	}
+  
+	@Get('verify')
+	async verifyEmail() {
+		await this.verifyService.addVerifyJob({
+			//   token: newUser.token,
+				code: 1234
+		});
+	}
+  }
+  

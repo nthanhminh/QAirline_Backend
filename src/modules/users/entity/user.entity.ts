@@ -15,8 +15,8 @@ export class User {
   @Column({ length: 500 })
   name: string;
 
-  @Column({ length: 500, default: () => ERolesUser.USER })
-  role: string;
+  @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER })
+  role: ERolesUser;
 
   @Column('text')
   email: string;
@@ -29,6 +29,16 @@ export class User {
 
   @Column('int')
   age: number;
+
+  @Column('text', {
+    default: null,
+  })
+  currentAccessToken: string;
+
+  @Column('text', {
+    default: null,
+  })
+  refreshToken: string;
 
   @CreateDateColumn()
   createdAt: Date;
