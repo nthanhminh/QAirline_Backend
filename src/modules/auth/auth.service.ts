@@ -177,4 +177,12 @@ export class AuthService {
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
 		return tokens;
 	  }
+
+	async getUserIfRefreshTokenMatched(userId: string, uuidRefreshToken: string) {
+		const user =  await this.usersService.findUserById(userId);
+		if(uuidRefreshToken === user.refreshToken) {
+			return true;
+		}
+		return false;
+	}
 }
