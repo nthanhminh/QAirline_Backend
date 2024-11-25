@@ -1,0 +1,12 @@
+export enum ESeatClass {
+    BUSINESS = "BUSINESS",
+    PREMINUM_ECONOMY = "PREMINUM_ECONOMY",
+    ECONOMY = "ECONOMY",
+    BASIC_ECONOMY = "BASIC_ECONOMY"
+}
+
+export enum ESeatType {
+    WINDOW_SEAT = "WINDOW_SEAT",
+    AISLE_SEAT = "AISLE_SEAT",
+    EXIT_ROW_SEAT = "EXIT_ROW_SEAT"
+}

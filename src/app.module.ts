@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from '@modules/databases/databases.module';
 import { UserModule } from '@modules/users/user.module';
 import { AuthModule } from '@modules/auth/auth.module';
@@ -12,6 +11,12 @@ import { HttpErrorFilter } from './interceptors/httpError.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { AirportModule } from '@modules/airports/airport.module';
+import { PlaneModule } from '@modules/planes/plane.module';
+import { SeatModule } from '@modules/seatsForPlaneType/seats.module';
+import { SeatClassInfoModule } from '@modules/seatClassInfo/seatClassInfo.module';
+import { FlightModule } from '@modules/flights/flight.module';
+import { FlightPriceModule } from '@modules/priceForFlight/priceForFlight.module';
 
 @Module({
   imports: [
@@ -53,7 +58,13 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
     }),
     DatabaseModule,
     UserModule,
-    AuthModule
+    AuthModule,
+    AirportModule,
+    PlaneModule,
+    SeatModule,
+    SeatClassInfoModule,
+    FlightModule,
+    FlightPriceModule
   ],
   controllers: [AppController],
   providers: [

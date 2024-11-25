@@ -16,6 +16,14 @@ export class AppResponse<T> {
 	data: T;
 }
 
+export class AppResponseMessage<T> {
+	@ApiProperty()
+	message: string;
+
+	@ApiProperty()
+	data: T;
+}
+
 export class LoginResponse {
 	@ApiProperty()
 	accessToken: string;

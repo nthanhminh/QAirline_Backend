@@ -6,12 +6,10 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { ERolesUser } from '../enums/index.enum';
+import { BaseEntity } from '@modules/shared/base/base.entity';
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class User extends BaseEntity {
   @Column({ length: 500 })
   name: string;
 
@@ -39,10 +37,4 @@ export class User {
     default: null,
   })
   refreshToken: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @DeleteDateColumn()
-  deletedAt: Date | null; 
 }

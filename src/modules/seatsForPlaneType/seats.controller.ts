@@ -1,0 +1,44 @@
+import { Body, Controller, Delete, Param, Patch, Post } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { CreateNewSeatLayoutDto } from "./dto/createNewSeatLayout.dto";
+import { SeatService } from "./seats.service";
+import { AppResponse } from "src/types/common.type";
+import { Seat } from "./entity/seat.entity";
+import { UpdateSeatLayoutDto } from "./dto/updateSeatLayout.dto";
+import { UpdateResult } from "typeorm";
+
+@Controller('seats')
+@ApiTags('seats')
+@ApiBearerAuth('token')
+export class SeatsController {
+
+    constructor(
+        private readonly seatService: SeatService
+    ) {}
+
+    @Post()
+    async createNewSeatLayout(@Body() dto: CreateNewSeatLayoutDto) : Promise<AppResponse<Seat>> {
+        return {
+            data: await this.seatService.createSeatLayout(dto),
+        }
+    }
+
+    @Patch(':id')
+    async updateSeatLayout(
+        @Param('id') id: string,
+        @Body() dto: UpdateSeatLayoutDto
+    ) : Promise<AppResponse<UpdateResult>> {
+        return {
+            data: await this.seatService.updateSeatLayout(id, dto),
+        }
+    }
+
+    @Delete(':id')
+    async deleteSeatLayout(
+        @Param('id') id: string
+    ) : Promise<AppResponse<UpdateResult>> {
+        return {
+            data: await this.seatService.deleteSeatLayout(id),
+        }
+    }
+}

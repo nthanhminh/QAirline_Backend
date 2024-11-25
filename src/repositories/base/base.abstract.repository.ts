@@ -1,4 +1,4 @@
-import { Repository, DataSource, DeepPartial, EntityTarget, FindOptionsWhere, FindOneOptions, SaveOptions, UpdateResult, DeleteResult } from 'typeorm';
+import { Repository, DataSource, DeepPartial, EntityTarget, FindOptionsWhere, FindOneOptions, SaveOptions, UpdateResult, DeleteResult, FindManyOptions } from 'typeorm';
 import { BaseEntity } from '@modules/shared/base/base.entity';
 import { FindAllResponse } from 'src/types/common.type';
 import { BaseRepositoryInterface } from './base.interface.repository';
@@ -39,7 +39,7 @@ export abstract class BaseRepositoryAbstract<T extends BaseEntity>
 
 	async findAll(
 		condition: FindOptionsWhere<T>,
-		options?: FindOneOptions<T>,
+		options?: FindManyOptions<T>,
 	): Promise<FindAllResponse<T>> {
 		const [items, count] = await this.repository.findAndCount({
 			where: condition,
