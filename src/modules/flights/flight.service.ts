@@ -4,10 +4,11 @@ import { Flight } from "./entity/flight.entity";
 import { FlightRepository } from "@repositories/flight.repository";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
-import { DataSource, UpdateResult } from "typeorm";
+import { DataSource, ObjectLiteral, UpdateResult } from "typeorm";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
 import { ESortFlightBy } from "./enums/index.enum";
+import { durationToSeconds } from "src/helper/time.helper";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -51,7 +52,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         return await this.flightRepository.softDelete(id);
     }
 
-    async filterFlight(dto: FilterFlightDto) {
+    async filterFlight(dto: FilterFlightDto) : Promise<ObjectLiteral[]> {
         const { search, sortedBy, page, pageSize } = dto;
         const { skip, limit } = _getSkipLimit({ page, pageSize });
     
@@ -59,13 +60,17 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         if (search) {
           condition["flightCode"] = search;
         }
-    
-        // Use the DataSource instance to get the repository and build the query
-        const queryBuilder = this.dataSource.getRepository(Flight)
-          .createQueryBuilder("flight")
-          .leftJoin("flight.flightsPrice", "flightPrice")  // Join with the FlightPrice table
-          .addSelect("MIN(flightPrice.price)", "minPrice") // Add the MIN(price) as minPrice
-    
+
+        const queryBuilder = this.dataSource.getRepository("flight")
+            .createQueryBuilder("flight")
+            .leftJoin("flight.flightsPrice", "flight_price")
+            .addSelect(subQuery => {
+              return subQuery
+                .select("MIN(flight_price.price)", "min_price")
+                .from("flight_price", "flight_price")
+                .where("flight_price.flightId = flight.id");
+            }, "min_price")  
+            .groupBy("flight.id") 
         if (search) {
           queryBuilder.andWhere("flight.flightCode = :search", { search });
         }
@@ -84,21 +89,18 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             queryBuilder.orderBy("flight.duration", "DESC");
             break;
           case ESortFlightBy.ASC_PRICE:
-            queryBuilder.orderBy("minPrice", "ASC"); // Order by the minimum price
+            queryBuilder.orderBy("min_price", "ASC"); // Order by the minimum price
             break;
           case ESortFlightBy.DESC_PRICE:
-            queryBuilder.orderBy("minPrice", "DESC"); // Order by the minimum price
+            queryBuilder.orderBy("min_price", "DESC"); // Order by the minimum price
             break;
           default:
             queryBuilder.orderBy("flight.departureTime", "ASC");
         }
-    
-        // Group by flight.id to ensure each flight appears once, along with the minimum price
-        queryBuilder.groupBy("flight.id");
-    
+
         queryBuilder.skip(skip).take(limit);
     
-        const flights = await queryBuilder.getMany();
+        const flights = await queryBuilder.getRawMany();
     
         return flights;
     }

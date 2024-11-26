@@ -6,7 +6,7 @@ import { AppResponse } from "src/types/common.type";
 import { Flight } from "./entity/flight.entity";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
-import { UpdateResult } from "typeorm";
+import { ObjectLiteral, UpdateResult } from "typeorm";
 
 @Controller('flights')
 @ApiTags('flights')
@@ -15,9 +15,10 @@ export class FlightController {
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto
-    ) : Promise<AppResponse<Flight[]>> {
+    ) : Promise<AppResponse<ObjectLiteral[]>> {
         return {
             data: await this.flightService.filterFlight(dto),
+            // data: await this.flightService.test()
         }
     }
 

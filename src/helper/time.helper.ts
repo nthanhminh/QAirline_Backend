@@ -1,4 +1,4 @@
-function durationToSeconds(duration: string): number {
+export function durationToSeconds(duration: string): number {
     // Regular expression to match the HH:mm:ss format
     const regex = /^(\d{2}):(\d{2}):(\d{2})$/;
     const match = duration.match(regex);

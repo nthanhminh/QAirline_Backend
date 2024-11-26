@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CreateNewSeatLayoutDto } from "./dto/createNewSeatLayout.dto";
 import { SeatService } from "./seats.service";
@@ -6,6 +6,8 @@ import { AppResponse } from "src/types/common.type";
 import { Seat } from "./entity/seat.entity";
 import { UpdateSeatLayoutDto } from "./dto/updateSeatLayout.dto";
 import { UpdateResult } from "typeorm";
+import { ERolesUser } from "@modules/users/enums/index.enum";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
 
 @Controller('seats')
 @ApiTags('seats')

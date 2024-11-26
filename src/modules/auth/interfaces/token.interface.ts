@@ -1,5 +1,5 @@
 export class TokenPayload {
-	userId: string;
+	sub: string;
 	uuidAccessToken: string;
 	// jti: string;
 }

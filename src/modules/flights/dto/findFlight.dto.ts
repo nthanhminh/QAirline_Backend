@@ -4,14 +4,10 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { ESortFlightBy } from "../enums/index.enum";
 
 export class FilterFlightDto extends PaginationDto {
-    // @ApiProperty({
-    //     required: true
-    // })
-    // @IsNotEmpty()
-    // flightCode: string
-
     @ApiProperty({
-        required: false
+        required: false,
+        enum: ESortFlightBy,
+        enumName: 'ESortFlightBy'
     })
     @IsOptional()
     @IsEnum(ESortFlightBy)

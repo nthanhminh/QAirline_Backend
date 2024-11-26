@@ -19,7 +19,7 @@ export class AirportsController {
 
     constructor(private readonly airportService: AirportService) {}
 
-    @Roles(ERolesUser.USER)
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
     @Get()
