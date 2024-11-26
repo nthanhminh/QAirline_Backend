@@ -17,6 +17,8 @@ import { SeatModule } from '@modules/seatsForPlaneType/seats.module';
 import { SeatClassInfoModule } from '@modules/seatClassInfo/seatClassInfo.module';
 import { FlightModule } from '@modules/flights/flight.module';
 import { FlightPriceModule } from '@modules/priceForFlight/priceForFlight.module';
+import { MenuModule } from '@modules/menu/food.module';
+import { ServiceModule } from '@modules/services/services.module';
 
 @Module({
   imports: [
@@ -64,7 +66,9 @@ import { FlightPriceModule } from '@modules/priceForFlight/priceForFlight.module
     SeatModule,
     SeatClassInfoModule,
     FlightModule,
-    FlightPriceModule
+    FlightPriceModule,
+    MenuModule,
+    ServiceModule
   ],
   controllers: [AppController],
   providers: [
