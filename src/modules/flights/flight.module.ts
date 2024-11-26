@@ -4,11 +4,15 @@ import { Module } from "@nestjs/common";
 import { flightProviders } from "./flight.provider";
 import { FlightService } from "./flight.service";
 import { FlightController } from "./flight.controller";
+import { AirportModule } from "@modules/airports/airport.module";
+import { PlaneModule } from "@modules/planes/plane.module";
 
 @Module({
     imports: [
         DatabaseModule,
-        SharedModule
+        SharedModule,
+        AirportModule,
+        PlaneModule
     ],
     controllers: [FlightController],
     providers: [...flightProviders, FlightService],

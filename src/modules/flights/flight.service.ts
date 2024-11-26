@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { Flight } from "./entity/flight.entity";
 import { FlightRepository } from "@repositories/flight.repository";
@@ -9,6 +9,8 @@ import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
 import { ESortFlightBy } from "./enums/index.enum";
 import { durationToSeconds } from "src/helper/time.helper";
+import { AirportService } from "@modules/airports/airport.service";
+import { PlaneService } from "@modules/planes/planes.service";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -17,36 +19,78 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         private readonly flightRepository:FlightRepository,
 
         @Inject('DATA_SOURCE') 
-        private readonly dataSource: DataSource
+        private readonly dataSource: DataSource,
+
+        private readonly airportService: AirportService,
+
+        private readonly planeService: PlaneService
     ) {
         super(flightRepository)
     }
 
     async createNewFlight(dto: CreateNewFlightDto): Promise<Flight> {
-        const { departureTime, duration, ...data } = dto;
+        const { departureTime, duration, fromAirportId, toAirportId, planeId, ...data } = dto;
+        const plane = await this.planeService.findOneByCondition({id: planeId});
+        if(!plane) {
+          throw new NotFoundException('planes.plane not found');
+        }
         const convertedDuration = durationToSeconds(duration);
         const convertedDepartureTime = new Date(departureTime);
+        const [fromAirport, toAirport] = await Promise.all([
+            this.airportService.findOneByCondition({id: fromAirportId}),
+            this.airportService.findOneByCondition({id: toAirportId}),
+        ])
+        if(!fromAirport || !toAirport) {
+          throw new NotFoundException('flights.not found fromAirport or toAirport');
+        }
         return await this.flightRepository.create({
             ...data,
             departureTime: convertedDepartureTime,
-            duration: convertedDuration
+            duration: convertedDuration,
+            fromAirport: fromAirport,
+            toAirport: toAirport,
+            plane: plane
         });
     }
 
-    async updateFlight(id: string, dto: UpdateFlightDto) : Promise<UpdateResult> {
-        const flight = await this.flightRepository.findOneById(id);
-        if(!flight) {
-            throw new NotFoundException('flights.flight not found');
-        }
-        const { departureTime, duration, ...data } = dto;
-        const convertedDepartureTime = new Date(departureTime);
-        const convertedDuration = durationToSeconds(duration);
-        return await this.flightRepository.update(id, {
-            ...data,
-            departureTime: convertedDepartureTime,
-            duration: convertedDuration
-        });
-    }
+    async updateFlight(id: string, dto: UpdateFlightDto): Promise<UpdateResult> {
+      const flight = await this.flightRepository.findOneById(id);
+      if (!flight) {
+          throw new NotFoundException('Flight not found');
+      }
+  
+      const { departureTime, duration, fromAirportId, toAirportId, planeId, ...data } = dto;
+      const plane = planeId ? await this.planeService.findOneByCondition({id: planeId}) : null;
+      if(planeId && !plane) {
+          throw new NotFoundException('planes.plane not found');
+      }
+      const convertedDepartureTime = departureTime ? new Date(departureTime) : undefined;
+      const convertedDuration = duration ? durationToSeconds(duration) : undefined;
+  
+      const [fromAirport, toAirport] = await Promise.all([
+          fromAirportId ? this.airportService.findOneByCondition({ id: fromAirportId }) : null,
+          toAirportId ? this.airportService.findOneByCondition({ id: toAirportId }) : null,
+      ]);
+  
+      if ((fromAirportId && !fromAirport) || (toAirportId && !toAirport)) {
+          throw new NotFoundException('Either fromAirport or toAirport not found');
+      }
+  
+      const updatePayload = {
+          ...data,
+          ...(convertedDepartureTime && { departureTime: convertedDepartureTime }),
+          ...(convertedDuration && { duration: convertedDuration }),
+          ...(fromAirport && { fromAirport }),
+          ...(toAirport && { toAirport }),
+          ...(plane && { plane }),
+      };
+  
+      if (Object.keys(updatePayload).length === 0) {
+          throw new BadRequestException('No changes to update');
+      }
+  
+      return this.flightRepository.update(id, updatePayload);
+    }  
 
     async deleteFlight(id: string) : Promise<UpdateResult> {
         return await this.flightRepository.softDelete(id);
@@ -63,18 +107,19 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         const queryBuilder = this.dataSource.getRepository("flight")
             .createQueryBuilder("flight")
-            .leftJoin("flight.flightsPrice", "flight_price")
+            .leftJoinAndSelect("flight.flightsPrice", "flight_price")
+            .leftJoinAndSelect("flight_price.seatClassInfo", "seat_class_info")
             .addSelect(subQuery => {
               return subQuery
                 .select("MIN(flight_price.price)", "min_price")
                 .from("flight_price", "flight_price")
                 .where("flight_price.flightId = flight.id");
             }, "min_price")  
-            .groupBy("flight.id") 
+            .groupBy("flight.id, flight_price.id, seat_class_info.id") 
         if (search) {
           queryBuilder.andWhere("flight.flightCode = :search", { search });
         }
-    
+        
         switch (sortedBy) {
           case ESortFlightBy.ASC_DEPARTURE_TIME:
             queryBuilder.orderBy("flight.departureTime", "ASC");
@@ -89,10 +134,10 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             queryBuilder.orderBy("flight.duration", "DESC");
             break;
           case ESortFlightBy.ASC_PRICE:
-            queryBuilder.orderBy("min_price", "ASC"); // Order by the minimum price
+            queryBuilder.orderBy("min_price", "ASC"); 
             break;
           case ESortFlightBy.DESC_PRICE:
-            queryBuilder.orderBy("min_price", "DESC"); // Order by the minimum price
+            queryBuilder.orderBy("min_price", "DESC"); 
             break;
           default:
             queryBuilder.orderBy("flight.departureTime", "ASC");
@@ -100,7 +145,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         queryBuilder.skip(skip).take(limit);
     
-        const flights = await queryBuilder.getRawMany();
+        const flights = await queryBuilder.getMany();
     
         return flights;
     }

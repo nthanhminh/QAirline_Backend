@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '@modules/shared/base/base.entity';
 import { EPlaneType } from '../enums/index.enum';
 import { Seat } from '@modules/seatsForPlaneType/entity/seat.entity';
+import { Flight } from '@modules/flights/entity/flight.entity';
 
 @Entity()
 export class Plane extends BaseEntity {
@@ -21,4 +22,7 @@ export class Plane extends BaseEntity {
   @ManyToOne(() => Seat, (seat) => seat.planes)
   @JoinColumn({ name: 'seatLayoutId' }) 
   seatLayoutId: Seat;  
+
+  @OneToMany(() => Flight, (flight) => flight.plane)
+  flights: Flight[]
 }

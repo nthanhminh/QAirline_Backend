@@ -2,6 +2,8 @@
   import { BaseEntity } from '@modules/shared/base/base.entity';
   import { FlightPrice } from '@modules/priceForFlight/entity/priceForFlight.entity';
 import { Airport } from '@modules/airports/entity/airport.entity';
+import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
+import { Plane } from '@modules/planes/entity/plane.entity';
 
   @Entity()
   export class Flight extends BaseEntity {
@@ -17,6 +19,15 @@ import { Airport } from '@modules/airports/entity/airport.entity';
     @Column('int')
     duration: number;
 
+    @Column('float', { default: 0 })
+    window_seat_price: number;
+
+    @Column('float', { default: 0 })
+    aisle_seat_price: number;
+
+    @Column('float', { default: 0 })
+    exit_row_seat_price: number;
+
     @Column({ length: 500 })
     description: string;
 
@@ -28,6 +39,13 @@ import { Airport } from '@modules/airports/entity/airport.entity';
     @JoinColumn({ name: 'toAirportId' })
     toAirport: Airport;
 
+    @ManyToOne(() => Plane, (plane) => plane.flights, { eager: true })
+    @JoinColumn({ name: 'planeId' })
+    plane: Plane;
+
     @OneToMany(() => FlightPrice, (flightPrice) => flightPrice.flight)
     flightsPrice: FlightPrice[]
+
+    @OneToMany(() => PriceForSeatType, (priceForSeatType) => priceForSeatType.flight)
+    flightsPriceForSeatType: PriceForSeatType[]
   }

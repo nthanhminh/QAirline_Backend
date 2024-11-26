@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsUUID } from "class-validator";
+import { IsNotEmpty, IsNumber, IsUUID } from "class-validator";
 import { IsDateTimeDDMMYYYYHHMMSS, IsTimeFormat } from "src/validators/index.validator";
 
 export class CreateNewFlightDto {
@@ -46,4 +46,28 @@ export class CreateNewFlightDto {
     })
     @IsUUID()
     toAirportId: string;
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsUUID()
+    planeId: string;
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    window_seat_price: number;
+    
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    aisle_seat_price: number;
+    
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    exit_row_seat_price: number;
 }
