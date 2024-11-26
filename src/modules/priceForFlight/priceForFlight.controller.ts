@@ -1,18 +1,26 @@
-import { ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AppResponse, FindAllResponse } from "src/types/common.type";
 import { FlightPrice } from "./entity/priceForFlight.entity";
 import { PriceFlightService } from "./priceForFlight.service";
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CreateNewPriceForFlightDto } from "./dto/createNewPriceForFlight.dto";
 import { UpdatePriceForFlightDto } from "./dto/updatePriceForFlight.dto";
 import { UpdateResult } from "typeorm";
+import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { ERolesUser } from "@modules/users/enums/index.enum";
+import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('flight_price')
 @ApiTags('flight_price')
+@ApiBearerAuth('token')
 export class FlightPriceController {
     
     constructor(private readonly flightPriceService: PriceFlightService) {}
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Get()
     async getAllPriceForFlight(
         @Query('flightId') flightId: string
@@ -22,7 +30,9 @@ export class FlightPriceController {
         }
     }
 
-
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Post()
     async createNewFlightPrice(
         @Body() dto: CreateNewPriceForFlightDto
@@ -32,6 +42,9 @@ export class FlightPriceController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Patch(':id')
     async updateFlightPrice(
         @Param('id') id: string,
@@ -42,6 +55,9 @@ export class FlightPriceController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Delete(':id')
     async deleteFlightPrice(
         @Param('id') id: string

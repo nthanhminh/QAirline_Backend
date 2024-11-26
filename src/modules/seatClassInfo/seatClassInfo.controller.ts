@@ -16,7 +16,7 @@ import { Roles } from "src/decorators/roles.decorator";
 export class SeatClassInfoController {
 
     constructor(private readonly seatClassInfoService: SeatClassInfoService) {}
-
+	@UseGuards(JwtAccessTokenGuard)
 	@ApiBearerAuth('token')
 	@UseGuards(JwtAccessTokenGuard)
     @Get()

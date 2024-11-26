@@ -8,6 +8,8 @@ import { UpdateSeatLayoutDto } from "./dto/updateSeatLayout.dto";
 import { UpdateResult } from "typeorm";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
+import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('seats')
 @ApiTags('seats')
@@ -18,6 +20,9 @@ export class SeatsController {
         private readonly seatService: SeatService
     ) {}
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Post()
     async createNewSeatLayout(@Body() dto: CreateNewSeatLayoutDto) : Promise<AppResponse<Seat>> {
         return {
@@ -25,6 +30,9 @@ export class SeatsController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Patch(':id')
     async updateSeatLayout(
         @Param('id') id: string,
@@ -35,6 +43,9 @@ export class SeatsController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Delete(':id')
     async deleteSeatLayout(
         @Param('id') id: string

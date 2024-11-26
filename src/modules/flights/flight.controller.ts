@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { FlightService } from "./flight.service";
 import { AppResponse } from "src/types/common.type";
@@ -7,11 +7,18 @@ import { Flight } from "./entity/flight.entity";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
 import { ObjectLiteral, UpdateResult } from "typeorm";
+import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { ERolesUser } from "@modules/users/enums/index.enum";
+import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('flights')
 @ApiTags('flights')
+@ApiBearerAuth('token')
 export class FlightController {
     constructor(private readonly flightService:FlightService) {}
+
+	@UseGuards(JwtAccessTokenGuard)
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto
@@ -22,6 +29,9 @@ export class FlightController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Post()
     async createNewFlight(@Body() dto: CreateNewFlightDto): Promise<AppResponse<Flight>> {
         return {
@@ -29,6 +39,9 @@ export class FlightController {
         }
     }   
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Patch(':id')
     async updateFlight(
         @Param('id') id: string,
@@ -39,6 +52,9 @@ export class FlightController {
         }
     }
 
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Delete(':id')
     async deleteFlight(
         @Param('id') id: string

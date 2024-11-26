@@ -107,6 +107,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         const queryBuilder = this.dataSource.getRepository("flight")
             .createQueryBuilder("flight")
+            .leftJoinAndSelect("flight.plane", "flight_plane")
+            .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout")
             .leftJoinAndSelect("flight.flightsPrice", "flight_price")
             .leftJoinAndSelect("flight_price.seatClassInfo", "seat_class_info")
             .addSelect(subQuery => {
@@ -115,7 +117,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
                 .from("flight_price", "flight_price")
                 .where("flight_price.flightId = flight.id");
             }, "min_price")  
-            .groupBy("flight.id, flight_price.id, seat_class_info.id") 
+            .groupBy("flight.id, flight_plane.id, flight_plane_seatlayout.id, flight_price.id, seat_class_info.id") 
         if (search) {
           queryBuilder.andWhere("flight.flightCode = :search", { search });
         }
