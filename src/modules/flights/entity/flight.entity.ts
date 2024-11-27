@@ -4,6 +4,7 @@
 import { Airport } from '@modules/airports/entity/airport.entity';
 import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
 import { Plane } from '@modules/planes/entity/plane.entity';
+import { Booking } from '@modules/booking/entity/booking.entity';
 
   @Entity()
   export class Flight extends BaseEntity {
@@ -48,4 +49,7 @@ import { Plane } from '@modules/planes/entity/plane.entity';
 
     @OneToMany(() => PriceForSeatType, (priceForSeatType) => priceForSeatType.flight)
     flightsPriceForSeatType: PriceForSeatType[]
-  }
+
+    @OneToMany(() => Booking, (booking) => booking.flight)
+    bookings: Booking[]
+}

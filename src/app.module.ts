@@ -19,6 +19,8 @@ import { FlightModule } from '@modules/flights/flight.module';
 import { FlightPriceModule } from '@modules/priceForFlight/priceForFlight.module';
 import { MenuModule } from '@modules/menu/food.module';
 import { ServiceModule } from '@modules/services/services.module';
+import { TicketModule } from '@modules/ticket/ticket.module';
+import { BookingModule } from '@modules/booking/booking.module';
 
 @Module({
   imports: [
@@ -68,7 +70,9 @@ import { ServiceModule } from '@modules/services/services.module';
     FlightModule,
     FlightPriceModule,
     MenuModule,
-    ServiceModule
+    ServiceModule,
+    BookingModule,
+    TicketModule
   ],
   controllers: [AppController],
   providers: [

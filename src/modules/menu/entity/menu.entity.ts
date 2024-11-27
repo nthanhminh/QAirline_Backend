@@ -1,5 +1,6 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany } from 'typeorm';
 import { BaseEntity } from '@modules/shared/base/base.entity';
+import { Ticket } from '@modules/ticket/entity/ticket.entity';
 
 @Entity()
 export class Menu extends BaseEntity {
@@ -14,4 +15,7 @@ export class Menu extends BaseEntity {
 
   @Column('float')
   price: number;
+
+  @ManyToMany(() => Ticket, (ticket) => ticket.menus)
+  tickets: Ticket[];
 }

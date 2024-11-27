@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsJSON, IsNotEmpty } from "class-validator";
+import { IsEnum, IsJSON, IsNotEmpty } from "class-validator";
 import { ServiceItem } from "../type/index.type";
+import { EServiceType } from "../enum/index.enum";
 
 export class CreateNewServiceDto {
     @ApiProperty({
@@ -18,6 +19,11 @@ export class CreateNewServiceDto {
     @ApiProperty({
         required: true,
     })
-    @IsJSON()
-    services: ServiceItem[];
+    @IsEnum(EServiceType)
+    type: EServiceType;
+
+    @ApiProperty({
+        required: true,
+    })
+    price: number;
 }

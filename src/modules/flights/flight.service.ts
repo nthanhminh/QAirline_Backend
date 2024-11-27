@@ -151,4 +151,17 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     
         return flights;
     }
+
+    async getFlightWithDetailInfo(flightId: string) : Promise<Flight> {
+        const flight = this.dataSource
+          .getRepository(Flight) 
+          .createQueryBuilder("flight") 
+          .leftJoinAndSelect("flight.plane", "flight_plane") 
+          .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout") 
+          .where("flight.id = :flightId", { flightId }) 
+          .getOne(); 
+    
+        return flight;
+    }
+    
 }

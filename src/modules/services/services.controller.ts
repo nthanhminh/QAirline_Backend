@@ -4,7 +4,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@n
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Services } from "./entity/service.entity";
 import { CreateNewServiceDto } from "./dto/createNewService.dto";
-import { ServiceItemDto } from "./dto/service.dto";
 import { UpdateResult } from "typeorm";
 import { ServiceUpdateDto } from "./dto/updateService.dto";
 import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
@@ -31,19 +30,6 @@ export class ServicesController {
     async createNewService(@Body() dto: CreateNewServiceDto) : Promise<AppResponse<Services>> {
         return {
             data: await this.servicesHandler.createNewService(dto)
-        }
-    }
-
-    @Roles(ERolesUser.ADMIN)
-    @UseGuards(RolesGuard)
-	@UseGuards(JwtAccessTokenGuard)
-    @Patch('/addService/:id')
-    async addNewService(
-        @Param('id') id: string,
-        @Body() dto: ServiceItemDto
-    ) : Promise<AppResponse<UpdateResult>> {
-        return {
-            data: await this.servicesHandler.addNewServiceChild(id, dto),
         }
     }
 

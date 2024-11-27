@@ -1,12 +1,11 @@
 import {
   Entity,
   Column,
-  PrimaryGeneratedColumn,
-  CreateDateColumn,
-  DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ERolesUser } from '../enums/index.enum';
 import { BaseEntity } from '@modules/shared/base/base.entity';
+import { Booking } from '@modules/booking/entity/booking.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -37,4 +36,7 @@ export class User extends BaseEntity {
     default: null,
   })
   refreshToken: string;
+
+  @OneToMany(() => Booking, (booking) => booking.flight)
+  bookings: Booking[]
 }
