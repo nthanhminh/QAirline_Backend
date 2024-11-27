@@ -1,20 +1,25 @@
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
+import dotenv from 'dotenv';
 
+dotenv.config();
 export const databaseProviders = [
   {
     provide: 'DATA_SOURCE',
     useFactory: async () => {
+      console.log(process.env.Databse);
       const dataSource = new DataSource({
         type: 'postgres', // Change to 'postgres' for PostgreSQL
-        host: 'localhost', // PostgreSQL host
-        port: 5432, // Default PostgreSQL port
-        username: 'postgres', // PostgreSQL username
-        password: 'admin', // PostgreSQL password
-        database: 'Qairline_db', 
+        
+        useUTC: true,
+        database: 'qairline_database', 
         entities: [
             __dirname + '/../**/*.entity{.ts,.js}',
         ],
-        synchronize: true, // Be cautious with 'synchronize' in production
+        ssl: {
+          rejectUnauthorized: false, 
+        },
+        synchronize: false,
       });
 
       return dataSource.initialize();

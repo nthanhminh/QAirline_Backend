@@ -27,11 +27,14 @@ import { BookingModule } from '@modules/booking/booking.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],  
+      inject: [ConfigService],  
+      useFactory: async (configService: ConfigService) => ({
+        connection: {
+          url: configService.get<string>('REDIS_URL'),
+        },
+      }),
     }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
