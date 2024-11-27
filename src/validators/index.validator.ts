@@ -22,6 +22,41 @@ export function IsDateTimeDDMMYYYYHHMMSS(validationOptions?: ValidationOptions) 
   };
 }
 
+
+export function IsDateTimeDDMMYYYY(validationOptions?: ValidationOptions) {
+  return function (object: any, propertyName: string) {
+    registerDecorator({
+      name: 'IsDateTimeDDMMYYYY',
+      target: object.constructor,
+      propertyName: propertyName,
+      constraints: [],
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          // Regex for dd-MM-yyyy
+          const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+
+          if (typeof value !== 'string' || !regex.test(value)) {
+            return false;
+          }
+
+          // Validate if the date is valid (e.g., not 31-02-2024)
+          const [day, month, year] = value.split('-').map(Number);
+          const date = new Date(year, month - 1, day); // Month is zero-based in JS Dates
+          return (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day
+          );
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be in the format dd-MM-yyyy`;
+        },
+      },
+    });
+  };
+}
+
 export function IsTimeFormat(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
       registerDecorator({

@@ -11,6 +11,7 @@ import { ESortFlightBy } from "./enums/index.enum";
 import { durationToSeconds } from "src/helper/time.helper";
 import { AirportService } from "@modules/airports/airport.service";
 import { PlaneService } from "@modules/planes/planes.service";
+import * as moment from "moment";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -35,7 +36,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           throw new NotFoundException('planes.plane not found');
         }
         const convertedDuration = durationToSeconds(duration);
-        const convertedDepartureTime = new Date(departureTime);
+        const convertedDepartureTime = moment(departureTime, 'DD-MM-YYYY HH:mm:ss').toDate();
         const [fromAirport, toAirport] = await Promise.all([
             this.airportService.findOneByCondition({id: fromAirportId}),
             this.airportService.findOneByCondition({id: toAirportId}),
@@ -97,7 +98,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     }
 
     async filterFlight(dto: FilterFlightDto) : Promise<ObjectLiteral[]> {
-        const { search, sortedBy, page, pageSize } = dto;
+        const { search, fromAiportId, toAiportId, departureTime, sortedBy, page, pageSize } = dto;
         const { skip, limit } = _getSkipLimit({ page, pageSize });
     
         const condition: any = {};
@@ -107,6 +108,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         const queryBuilder = this.dataSource.getRepository("flight")
             .createQueryBuilder("flight")
+            .leftJoinAndSelect('flight.fromAirport', 'flight_fromAirport')
+            .leftJoinAndSelect("flight.toAirport", "flight_toAirport")
             .leftJoinAndSelect("flight.plane", "flight_plane")
             .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout")
             .leftJoinAndSelect("flight.flightsPrice", "flight_price")
@@ -117,9 +120,27 @@ export class FlightService extends BaseServiceAbstract<Flight> {
                 .from("flight_price", "flight_price")
                 .where("flight_price.flightId = flight.id");
             }, "min_price")  
-            .groupBy("flight.id, flight_plane.id, flight_plane_seatlayout.id, flight_price.id, seat_class_info.id") 
+            .groupBy("flight.id, flight_fromAirport.id, flight_toAirport.id, flight_plane.id, flight_plane_seatlayout.id, flight_price.id, seat_class_info.id") 
         if (search) {
           queryBuilder.andWhere("flight.flightCode = :search", { search });
+        }
+
+        if (fromAiportId) {
+          queryBuilder.andWhere("flight_fromAirport.id = :fromAiportId", { fromAiportId });
+        }
+        
+        if (toAiportId) {
+          queryBuilder.andWhere("flight_toAirport.id = :toAiportId", { toAiportId });
+        }
+
+        if (departureTime) {
+          const startOfDay = moment(departureTime, "DD-MM-YYYY").startOf('day').toDate();
+          const endOfDay = moment(departureTime, "DD-MM-YYYY").endOf('day').toDate();
+          console.log(startOfDay, endOfDay);
+          queryBuilder.andWhere("flight.departureTime BETWEEN :startOfDay AND :endOfDay", {
+            startOfDay,
+            endOfDay,
+          });
         }
         
         switch (sortedBy) {
@@ -147,8 +168,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         queryBuilder.skip(skip).take(limit);
     
-        const flights = await queryBuilder.getMany();
-    
+        const [flights, cnt] = await queryBuilder.getManyAndCount();
+        console.log(cnt);
         return flights;
     }
 
@@ -163,5 +184,4 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     
         return flight;
     }
-    
 }

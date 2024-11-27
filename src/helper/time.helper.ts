@@ -1,3 +1,5 @@
+import { ETimeZone } from "src/common/enum/index.enum";
+import * as momentTz from 'moment-timezone'
 export function durationToSeconds(duration: string): number {
     // Regular expression to match the HH:mm:ss format
     const regex = /^(\d{2}):(\d{2}):(\d{2})$/;
@@ -14,6 +16,10 @@ export function durationToSeconds(duration: string): number {
     const totalSeconds = Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
   
     return totalSeconds;
+}
+
+export function convertNowToTimezone(timezone: ETimeZone) {
+  return momentTz.tz(timezone);
 }
   
   

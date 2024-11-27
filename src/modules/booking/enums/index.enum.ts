@@ -7,3 +7,8 @@ export enum ECustomerType {
     ADULT = "ADULT",
     CHILD = "CHILD"
 }
+
+export enum ECheckType {
+    UPDATE = "UPDATE",
+    CANCELLED = "CANCELLED"
+}

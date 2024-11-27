@@ -18,3 +18,8 @@ export class EditTicket {
     seatClass: ESeatClass;
     customerName: string;
 }
+
+export class CancelTicket {
+    ticketId: string;
+    status: string;
+}

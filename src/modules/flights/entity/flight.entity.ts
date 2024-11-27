@@ -14,7 +14,10 @@ import { Booking } from '@modules/booking/entity/booking.entity';
     @Column('text')
     flightCode: string;
 
-    @Column('date')
+    @Column({
+      type: 'timestamp',
+      default: new Date()
+    })
     departureTime: Date;
 
     @Column('int')

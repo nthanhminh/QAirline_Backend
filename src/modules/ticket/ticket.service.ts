@@ -12,6 +12,7 @@ import { FindAllResponse } from "src/types/common.type";
 import { Booking } from "@modules/booking/entity/booking.entity";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
+import { EBookingStatus } from "@modules/booking/enums/index.enum";
 
 @Injectable()
 export class TicketService extends BaseServiceAbstract<Ticket> {
@@ -82,6 +83,20 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         }
 
         const newTicket = await ticketRepository.update(id, dto);
+    
+        return newTicket;
+    }
+
+    async cancelTicket(id: string, queryRunner: QueryRunner) : Promise<UpdateResult> {
+        const ticketRepository = queryRunner.manager.getRepository(Ticket);
+    
+        const ticket = await ticketRepository.findOne({ where: { id } });
+
+        if (!ticket) {
+            throw new Error(`ticks.ticket not found`);
+        }
+
+        const newTicket = await ticketRepository.update(id, {status: EBookingStatus.CANCELLED});
     
         return newTicket;
     }

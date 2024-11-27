@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { Booking } from "./entity/booking.entity";
 import { BookingRepository } from "@repositories/booking.repository";
@@ -9,10 +9,15 @@ import { UpdateBookingDto } from "./dto/updateNewBooking.dto";
 import { DataSource, QueryRunner, UpdateResult } from "typeorm";
 import { TicketService } from "@modules/ticket/ticket.service";
 import { Ticket } from "@modules/ticket/entity/ticket.entity";
-import { EditTicket, TicketBookingItem } from "./type/index.type";
+import { CancelTicket, EditTicket, TicketBookingItem } from "./type/index.type";
 import { SeatLayoutItem } from "@modules/seatsForPlaneType/types/index.type";
 import { query } from "express";
 import { EditBookingDto } from "./dto/EditBooking.dto";
+import { CancelTicketDto } from "./dto/cancelTicket.dto";
+import { EBookingStatus, ECheckType } from "./enums/index.enum";
+import { convertNowToTimezone } from "src/helper/time.helper";
+import { ETimeZone } from "src/common/enum/index.enum";
+import * as moment from "moment";
 
 @Injectable()
 export class BookingService extends BaseServiceAbstract<Booking> {
@@ -125,8 +130,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       
           // Lưu booking vào database
           const bookingSaved = await queryRunner.manager.save(booking);
-
-          console.log(bookingSaved);
       
           // Thêm thông tin chi tiết vé
           await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved);
@@ -183,7 +186,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         tickets: TicketBookingItem[],
         bookingId: Booking
       ): Promise<void> {
-        console.log(bookingId);
         for (const ticket of tickets) {
           const newTicket = await this.tickeService.createNewTicket({
             customerEmail: ticket.customerEmail,
@@ -236,16 +238,22 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         await queryRunner.startTransaction();
         try {
           const {ticketsData, flightId, ...data } = dto;
-          const booking = await queryRunner.manager.find(Booking, {
+          const booking = await queryRunner.manager.findOne(Booking, {
             where: {
               id: id,
             },
             relations: ['flight']
           })
-          console.log(booking);
+          if(!booking) {
+            throw new NotFoundException('bookings.booking not found');
+          }
           const flight = await this.flightService.findOneByCondition({id: flightId});
           if(!flight) {
             throw new NotFoundException('flights.flight not found');
+          }
+          const checkCanEditBooking = this._checkCanEditBooking(booking.flight.departureTime, ECheckType.UPDATE);
+          if(checkCanEditBooking) {
+            throw new BadRequestException('bookings.You cannot cancel this ticket because it is too late.');
           }
           await this.updateTicketDetail(ticketsData, flight.id, queryRunner);
           const runnerBookingRepository = queryRunner.manager.getRepository(Booking);
@@ -273,6 +281,89 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         }, ticket.ticketId, queryRunner, flightId);
       }
     }
+
+    async cancelTicketDetail(tickets: CancelTicket[], queryRunner: QueryRunner) {
+      let convertedTickets = [].concat(tickets);
+      for(const ticket of convertedTickets) {
+        const updatedTicket = await this.tickeService.cancelTicket(ticket.ticketId, queryRunner);
+      }
+    }
+
+    async cancelTicket(id: string, dto: CancelTicketDto) : Promise<string> {
+      const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+          const {ticketsData, paymentAmount, ...data } = dto;
+          const booking = await queryRunner.manager.findOne(Booking, {
+            where: {
+              id: id,
+            },
+            relations: ['flight', 'tickets']
+          })
+          if(!booking) {
+            throw new NotFoundException('bookings.booking not found');
+          }
+          const checkCanEditBooking = this._checkCanEditBooking(booking.flight.departureTime, ECheckType.CANCELLED);
+          if(checkCanEditBooking) {
+            throw new BadRequestException('bookings.You cannot cancel this ticket because it is too late.');
+          }
+          await this.cancelTicketDetail(ticketsData, queryRunner);
+          const checkCancelBooking = this._checkCancelBooking(booking.tickets, ticketsData);
+          if(checkCancelBooking) {
+            const runnerBookingRepository = queryRunner.manager.getRepository(Booking);
+            const updatedBooking = await runnerBookingRepository.update(id, {
+              status: EBookingStatus.CANCELLED
+            });
+          }
+          await queryRunner.commitTransaction();
+          return 'bookings.cancel successfully';
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw new Error('bookings.cancel error');
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    _checkCancelBooking(tickets: Ticket[], ticketsData: CancelTicket[]) : boolean {
+        const convertedTickets:Ticket[] = [].concat(tickets);
+        const convertedTicketsData: CancelTicket[] = [].concat(convertedTickets);
+        const mp: Map<string, number> = new Map();
+        for (const ticket of convertedTickets) {
+          mp.set(ticket.id, 1);
+        }
+        for (const ticketData of convertedTicketsData) {
+          if(mp.has(ticketData.ticketId)) {
+            mp.delete(ticketData.ticketId);
+          } else {
+            throw new BadRequestException('tickets.ticket not found');
+          }
+        }
+        return mp.size === 0;
+    }
+
+    _checkCanEditBooking(departureTime: Date, checkType: ECheckType): boolean {
+        const now = convertNowToTimezone(ETimeZone.UTC);
+        const convertedDepartureTime = moment(departureTime)
+        const diffHour = convertedDepartureTime.diff(now, 'hour'); // Directly use 'diff' to get the difference in hours
+    
+        switch (checkType) {
+            case ECheckType.UPDATE:
+                if (diffHour > 3) {
+                    return true;
+                }
+                break;
+            case ECheckType.CANCELLED:
+                if (diffHour > 72) {
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
+    
+
     async deleteBooking(id: string) : Promise<UpdateResult> {
         return await this.bookingRepository.softDelete(id);
     }

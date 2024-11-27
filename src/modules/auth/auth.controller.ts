@@ -70,7 +70,6 @@ import { VerifyService } from '@modules/queue/verify.service';
 	refreshTokens(@CurrentUserDecorator() user:User) {
 	  const userId = user.id;
 	  const refreshToken = user.refreshToken;
-	  console.log(userId, refreshToken);
 	  return this.authService.refreshTokens(userId, refreshToken);
 	}
   
