@@ -15,5 +15,7 @@ export class StatisticService {
         private readonly ticketRepository: FlightRepository,
     ) {}
 
-    
+    async getFlightStatistics() {
+        
+    }
 }
