@@ -8,9 +8,9 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "node --max-old-space-size=4096 dist/main.js",
-    "start:dev": "nest start --watch --max-old-space-size=4096",
-    "start:debug": "nest start --debug --watch --max-old-space-size=4096",
+    "start": "node --max-old-space-size=4096 && nest start",
+    "start:dev": "node --max-old-space-size=4096 && nest start --watch",
+    "start:debug": "node --max-old-space-size=4096 && nest start --debug --watch",
     "start:prod": "node --max-old-space-size=4096 dist/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
