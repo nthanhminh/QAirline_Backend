@@ -18,6 +18,8 @@ import { EBookingStatus, ECheckType } from "./enums/index.enum";
 import { convertNowToTimezone } from "src/helper/time.helper";
 import { ETimeZone } from "src/common/enum/index.enum";
 import * as moment from "moment";
+import { SeatClassPrice } from "@modules/flights/type/index.type";
+import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 
 @Injectable()
 export class BookingService extends BaseServiceAbstract<Booking> {
@@ -113,11 +115,15 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           // Lấy thông tin khách hàng và chuyến bay
           const { customer, flight } = await this._getCustomerAndFlight(customerId, flightId);
       
+          const seatClassPrices: SeatClassPrice[] = this.flightService.getSeatClassPriceForFlightUsingFlightsPrice(flight.flightsPrice);
+
+          // console.log(flight);
+
           // Xử lý ghế ngồi
           const convertedTickets = await this._handleTickets(
             tickets,
             flight.id,
-            flight.plane.seatLayoutId.seatLayoutForPlaneType,
+            // flight.plane.seatLayoutId.seatLayoutForPlaneType,
             queryRunner
           );
       
@@ -132,7 +138,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           const bookingSaved = await queryRunner.manager.save(booking);
       
           // Thêm thông tin chi tiết vé
-          await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved);
+          await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved, seatClassPrices);
       
           // Commit transaction
           await queryRunner.commitTransaction();
@@ -151,32 +157,72 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       async _handleTickets(
         tickets: TicketBookingItem[],
         flightId: string,
-        seatLayoutForPlaneType: SeatLayoutItem[],
-        queryRunner: QueryRunner
+        // seatLayoutForPlaneType: SeatLayoutItem[],
+        queryRunner: QueryRunner,
       ): Promise<TicketBookingItem[]> {
         const listSeatBooked = await this.tickeService.getTicketFromFlightId(flightId, queryRunner);
+        let {
+          numberOfBusinessSeats,
+          numberOfPreminumEconomySeats,
+          numberOfEconomySeats,
+          numberOfBasicSeats
+        } = await this.flightService.getNumberOfSeatInfoForFlight(flightId, queryRunner);
         const convertedTickets = tickets.map((ticket: TicketBookingItem) => {
-          if (ticket.seatValue) {
-            return ticket; // Nếu đã có seatValue, không cần xử lý
+          switch (ticket.seatClass) {
+            case ESeatClass.BUSINESS:
+              if(numberOfBusinessSeats <=0 ) {
+                throw new Error(`No available seat for ticket: ${ticket.seatClass}`);
+              }
+              numberOfBusinessSeats--;
+              break;
+            case ESeatClass.PREMINUM_ECONOMY:
+              if(numberOfPreminumEconomySeats <=0 ) {
+                throw new Error(`No available seat for ticket: ${ticket.seatClass}`);
+              }
+              numberOfPreminumEconomySeats--;
+              break;
+            case ESeatClass.ECONOMY:
+              if(numberOfEconomySeats <=0 ) {
+                throw new Error(`No available seat for ticket: ${ticket.seatClass}`);
+              }
+              numberOfEconomySeats--;
+              break;
+            case ESeatClass.BASIC_ECONOMY:
+              if(numberOfBasicSeats <=0 ) {
+                throw new Error(`No available seat for ticket: ${ticket.seatClass}`);
+              }
+              numberOfBasicSeats--;
+              break;
           }
-      
-          for (const seat of seatLayoutForPlaneType) {
-            if (
-              seat.seatClass === ticket.seatClass &&
-              !listSeatBooked.includes(`${seat.name}-${seat.seatClass}`)
-            ) {
-              return { ...ticket, seatValue: seat.name }; // Gán ghế phù hợp
+          if(ticket.seatValue) {
+            if (listSeatBooked.includes(`${ticket.seatValue}-${ticket.seatClass}`)) {
+              throw new Error(`${ticket.seatValue} is already booked`);
+            } else {
+              listSeatBooked.push(`${ticket.seatValue}-${ticket.seatClass}`);
             }
           }
+          return ticket;
+          // if (ticket.seatValue) {
+          //   return ticket; // Nếu đã có seatValue, không cần xử lý
+          // }
       
-          throw new Error(`No available seat for ticket: ${JSON.stringify(ticket)}`);
+          // for (const seat of seatLayoutForPlaneType) {
+          //   if (
+          //     seat.seatClass === ticket.seatClass &&
+          //     !listSeatBooked.includes(`${seat.name}-${seat.seatClass}`)
+          //   ) {
+          //     return { ...ticket, seatValue: seat.name }; // Gán ghế phù hợp
+          //   }
+          // }
+      
+          // throw new Error(`No available seat for ticket: ${JSON.stringify(ticket)}`);
         });
       
-        convertedTickets.forEach((ticket) => {
-          if (listSeatBooked.includes(`${ticket.seatValue}-${ticket.seatClass}`)) {
-            throw new Error(`${ticket.seatValue} is already booked`);
-          }
-        });
+        // convertedTickets.forEach((ticket) => {
+        //   if (listSeatBooked.includes(`${ticket.seatValue}-${ticket.seatClass}`)) {
+        //     throw new Error(`${ticket.seatValue} is already booked`);
+        //   }
+        // });
       
         return convertedTickets;
       }
@@ -184,9 +230,12 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       async addIntoTicketDetail(
         queryRunner: QueryRunner,
         tickets: TicketBookingItem[],
-        bookingId: Booking
+        bookingId: Booking,
+        seatClassPrices: SeatClassPrice[]
       ): Promise<void> {
         for (const ticket of tickets) {
+          const basePrice = this._getSeatClassPriceForTicket(seatClassPrices, ticket.seatClass);
+          console.log('basePriceBooking:', basePrice);
           const newTicket = await this.tickeService.createNewTicket({
             customerEmail: ticket.customerEmail,
             customerName: ticket.customerName,
@@ -197,7 +246,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
             serviceIds: ticket.servicesIds,
             seatValue: ticket.seatValue,
             seatClass: ticket.seatClass
-          }, queryRunner);
+          }, queryRunner, basePrice);
         }
       }
       
@@ -294,7 +343,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
-          const {ticketsData, paymentAmount, ...data } = dto;
+          const {ticketsData, ...data } = dto;
           const booking = await queryRunner.manager.findOne(Booking, {
             where: {
               id: id,
@@ -366,5 +415,14 @@ export class BookingService extends BaseServiceAbstract<Booking> {
 
     async deleteBooking(id: string) : Promise<UpdateResult> {
         return await this.bookingRepository.softDelete(id);
+    }
+
+    _getSeatClassPriceForTicket(seatClassPrices: SeatClassPrice[], seatClassName: ESeatClass): number {
+        for (const seatClassPrice of seatClassPrices) {
+            if (seatClassPrice.name === seatClassName) {
+                return seatClassPrice.price;
+            }
+        }
+        return 0; 
     }
 }

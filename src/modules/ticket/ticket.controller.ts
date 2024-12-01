@@ -6,6 +6,7 @@ import { Ticket } from "./entity/ticket.entity";
 import { CreateNewTicketDto } from "./dto/createNewTicket.dto";
 import { DataSource, UpdateResult } from "typeorm";
 import { StatusChangeDto } from "./dto/statusChange.dto";
+import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 
 @Controller('tickets')
 @ApiTags('tickets')
@@ -25,23 +26,23 @@ export class TicketController {
 
     @Get('/flight')
     async getTicketForFlight(@Query('flightId') flightId: string) : Promise<AppResponse<String[]>> {
-        const queryRunner = this.dataSource.createQueryRunner()
+        const queryRunner = this.dataSource.createQueryRunner();
         return {
             data: await this.ticketService.getTicketFromFlightId(flightId, queryRunner),
         }
     }
     
-    // @Post()
-    // async createNewTicket(@Body() dto: CreateNewTicketDto): Promise<AppResponse<Ticket>> {
-    //     return {
-    //         data: await this.ticketService.createNewTicket(dto),
-    //     }
-    // }
+    @Patch('checking/:id')
+    async checking(@Param('id') id: string) : Promise<AppResponse<any>>{
+        return {
+            data: await this.ticketService.checkin(id),
+        }
+    }
 
     @Patch(':id')
     async adjustStatus(
         @Param('id') id: string,
-        @Body() dto: StatusChangeDto
+        @Body() dto: UpdateTicketDto
     ) : Promise<AppResponse<UpdateResult>> {
         return {
             data: await this.ticketService.adjustTicketStatus(id, dto),

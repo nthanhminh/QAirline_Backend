@@ -4,7 +4,7 @@ import { Flight } from "./entity/flight.entity";
 import { FlightRepository } from "@repositories/flight.repository";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
-import { DataSource, ObjectLiteral, UpdateResult } from "typeorm";
+import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
 import { ESortFlightBy } from "./enums/index.enum";
@@ -12,6 +12,8 @@ import { durationToSeconds } from "src/helper/time.helper";
 import { AirportService } from "@modules/airports/airport.service";
 import { PlaneService } from "@modules/planes/planes.service";
 import * as moment from "moment";
+import { NumberOfSeatsForFlight, SeatClassPrice } from "./type/index.type";
+import { FlightPrice } from "@modules/priceForFlight/entity/priceForFlight.entity";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -176,7 +178,9 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     async getFlightWithDetailInfo(flightId: string) : Promise<Flight> {
         const flight = this.dataSource
           .getRepository(Flight) 
-          .createQueryBuilder("flight") 
+          .createQueryBuilder("flight")
+          .leftJoinAndSelect("flight.flightsPrice", "flights_price")
+          .leftJoinAndSelect("flights_price.seatClassInfo", "flights_price_seatClassInfo") 
           .leftJoinAndSelect("flight.plane", "flight_plane") 
           .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout") 
           .where("flight.id = :flightId", { flightId }) 
@@ -184,4 +188,47 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     
         return flight;
     }
+
+    async getSeatClassPriceForFlight(flightId: string) : Promise<SeatClassPrice[]> {
+      const flight = await this.dataSource
+          .getRepository(Flight) 
+          .createQueryBuilder("flight")
+          .leftJoinAndSelect("flight.flightsPrice", "flights_price")
+          .leftJoinAndSelect("flights_price.seatClassInfo", "flights_price_seatClassInfo")
+          .where("flight.id = :flightId", { flightId }) 
+          .getOne();
+      const seatClassPrices = flight.flightsPrice.map((flightPrice) => {
+        return {
+          name: flightPrice.seatClassInfo.name,
+          price: flightPrice.price
+        }
+      })
+      return seatClassPrices;
+    }
+
+    getSeatClassPriceForFlightUsingFlightsPrice(flightsPrice: FlightPrice[]) : SeatClassPrice[] {
+      const seatClassPrices = flightsPrice.map((flightPrice) => {
+        return {
+          name: flightPrice.seatClassInfo.name,
+          price: flightPrice.price
+        }
+      })
+      return seatClassPrices;
+    }
+
+    async getNumberOfSeatInfoForFlight(id: string, queryRunner: QueryRunner): Promise<NumberOfSeatsForFlight> {
+      const flight = await queryRunner.manager
+            .createQueryBuilder('flight', 'flight')
+            .leftJoin('flight.plane', 'flight_plane')
+            .leftJoin('flight_plane.seatLayoutId', 'flight_plane_seatLayout')
+            .where('flight.id = :flightId', { flightId: id })
+            .select([
+              'flight_plane_seatLayout.numberOfBusinessSeats AS numberOfBusinessSeats', // Alias ngắn gọn
+              'flight_plane_seatLayout.numberOfPreminumEconomySeats AS numberOfPreminumEconomySeats',
+              'flight_plane_seatLayout.numberOfEconomySeats AS numberOfEconomySeats',
+              'flight_plane_seatLayout.numberOfBasicSeats AS numberOfBasicSeats',
+            ])
+            .getRawOne();
+      return flight;
+    }    
 }

@@ -21,6 +21,7 @@ import { MenuModule } from '@modules/menu/food.module';
 import { ServiceModule } from '@modules/services/services.module';
 import { TicketModule } from '@modules/ticket/ticket.module';
 import { BookingModule } from '@modules/booking/booking.module';
+import { RedisCacheModule } from '@modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { BookingModule } from '@modules/booking/booking.module';
       ],
     }),
     DatabaseModule,
+    RedisCacheModule,
     UserModule,
     AuthModule,
     AirportModule,

@@ -7,12 +7,14 @@ import { MenuService } from "@modules/menu/food.service";
 import { BookingService } from "@modules/booking/booking.service";
 import { ServiceHandler } from "@modules/services/services.handler";
 import { StatusChangeDto } from "./dto/statusChange.dto";
-import { QueryRunner, UpdateResult } from "typeorm";
+import { DataSource, QueryRunner, UpdateResult } from "typeorm";
 import { FindAllResponse } from "src/types/common.type";
 import { Booking } from "@modules/booking/entity/booking.entity";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { EBookingStatus } from "@modules/booking/enums/index.enum";
+import { FlightService } from "@modules/flights/flight.service";
+import { CacheService } from "@modules/redis/redis.service";
 
 @Injectable()
 export class TicketService extends BaseServiceAbstract<Ticket> {
@@ -22,22 +24,41 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         @Inject(forwardRef(() => BookingService))
         private readonly bookingService: BookingService,
         private readonly menuService: MenuService,
-        private readonly serviceHandler: ServiceHandler
+        private readonly serviceHandler: ServiceHandler,
+        @Inject('DATA_SOURCE')
+        private readonly dataSource: DataSource,
+        private readonly flightService: FlightService,
+        private readonly cacheService: CacheService,
     ) {
         super(ticketRepository);
     }
 
-    async createNewTicket(dto: CreateNewTicketDto, queryRunner: QueryRunner) : Promise<Ticket> {
+    async createNewTicket(dto: CreateNewTicketDto, queryRunner: QueryRunner, basePrice: number) : Promise<Ticket> {
         let { bookingId, menuIds, serviceIds, ...data} = dto;
-
+        let price = basePrice;
         menuIds = [].concat(menuIds);
         serviceIds = [].concat(serviceIds);
+
         const menus = await Promise.all(
-            menuIds.map((id) =>  this.menuService.findOneByCondition({ id }))
+            menuIds.map(async (id) => {
+                const menu = await this.menuService.findOneByCondition({ id });
+                if (!menu) {
+                    return null;
+                }
+                price += menu.price;
+                return menu;
+            })
         );
-        
+    
         const services = await Promise.all(
-            serviceIds.map((id) => this.serviceHandler.findOneByCondition({ id }))
+            serviceIds.map(async (id) => {
+                const service = await this.serviceHandler.findOneByCondition({ id });
+                if (!service) {
+                    return null;
+                }
+                price += service.price;
+                return service;
+            })
         );
         
         if (menus.includes(null) || menus.includes(undefined)) {
@@ -57,12 +78,16 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         }
 
         const ticketRepository = queryRunner.manager.getRepository(Ticket);
+
+        console.log('price', price);
+        console.log(basePrice);
         
         const newTicket = await ticketRepository.create({
             ...data,
             booking: bookingId as Booking,
             menus: menus,
-            services: services
+            services: services,
+            price: price
         })
         
         return await ticketRepository.save(newTicket);
@@ -108,7 +133,7 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         }
     }
 
-    async adjustTicketStatus(id: string, dto: StatusChangeDto) : Promise<UpdateResult> {
+    async adjustTicketStatus(id: string, dto: UpdateTicketDto) : Promise<UpdateResult> {
         return await this.ticketRepository.update(id, dto);
     }
 
@@ -146,5 +171,58 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             .getMany();
     
         return tickets.map(ticket => `${ticket.seatValue}-${ticket.seatClass}`);
+    }
+
+    async checkin(id: string) : Promise<string> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            const ticket = await this.ticketRepository.findOneById(
+                id,
+                {
+                    relations: ['booking']
+                }
+            );
+            if(!ticket) {
+                throw new NotFoundException('tickets.ticket not found');
+            }
+            const flight = await this.flightService.getFlightWithDetailInfo(ticket.booking.flight.id);
+            const listSeatBooked = await this.getTicketFromFlightId(flight.id, queryRunner);
+            const seatLayoutForPlaneType = flight.plane.seatLayoutId.seatLayoutForPlaneType;
+            const seatTmpMap = await this.cacheService.getAllSeatInRedis();
+            console.log(seatTmpMap);
+            const listSeatRedis = []
+            for (const [key, value] of seatTmpMap.entries()) {
+                listSeatRedis.push(value);
+            }
+            if(ticket.seatValue === null) {
+                if(seatTmpMap.get(`seat:${ticket.id}`)) {
+                    return seatTmpMap.get(`seat:${ticket.id}`); 
+                };
+                for (const seat of seatLayoutForPlaneType) {
+                    if (
+                        seat.seatClass === ticket.seatClass &&
+                        !listSeatBooked.includes(`${seat.name}-${seat.seatClass}`) &&
+                        !listSeatRedis.includes(`${seat.name}-${seat.seatClass}`)
+                    ) {
+                        await this.cacheService.setCache(
+                            `seat:${ticket.id}`,
+                            `${seat.name}-${seat.seatClass}`,
+                            600
+                        )
+                        return `${seat.name}-${seat.seatClass}`;
+                    }
+                }
+            } else {
+                throw new UnprocessableEntityException('this ticket had checkined');
+            }
+            return ticket.seatValue;
+        } catch (error) {
+          await queryRunner.rollbackTransaction();
+          throw error;
+        } finally {
+          await queryRunner.release();
+        }
     }
 };

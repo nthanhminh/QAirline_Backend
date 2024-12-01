@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { FlightService } from "./flight.service";
@@ -6,17 +6,44 @@ import { AppResponse } from "src/types/common.type";
 import { Flight } from "./entity/flight.entity";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
-import { ObjectLiteral, UpdateResult } from "typeorm";
+import { DataSource, ObjectLiteral, UpdateResult } from "typeorm";
 import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
+import { SeatClassPrice } from "./type/index.type";
 
 @Controller('flights')
 @ApiTags('flights')
 @ApiBearerAuth('token')
 export class FlightController {
-    constructor(private readonly flightService:FlightService) {}
+    constructor(
+        private readonly flightService:FlightService,
+        @Inject('DATA_SOURCE')
+        private readonly dataSource: DataSource
+    ) {}
+
+    @Get('getFlightById')
+    async getFlightById(@Query('id') id: string) : Promise<AppResponse<Flight>> {
+        return {
+            data: await this.flightService.getFlightWithDetailInfo(id),
+        }
+    }
+
+    @Get('getSeatClassPrice')
+    async getSeatClassPrice(@Query('id') id: string) : Promise<AppResponse<SeatClassPrice[]>> {
+        return {
+            data: await this.flightService.getSeatClassPriceForFlight(id),
+        }
+    }
+
+    @Get('/getNumberOfSeatsForFlight')
+    async getNumberOfSeatsForFlight(@Query('id') id: string) : Promise<AppResponse<any>> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        return {
+            data: await this.flightService.getNumberOfSeatInfoForFlight(id, queryRunner),
+        }
+    }
 
 	@UseGuards(JwtAccessTokenGuard)
     @Get()

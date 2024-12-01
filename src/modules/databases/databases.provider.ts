@@ -10,7 +10,6 @@ export const databaseProviders = [
       console.log(process.env.Databse);
       const dataSource = new DataSource({
         type: 'postgres', // Change to 'postgres' for PostgreSQL
-        
         useUTC: true,
         database: 'qairline_database', 
         entities: [
@@ -19,7 +18,7 @@ export const databaseProviders = [
         ssl: {
           rejectUnauthorized: false, 
         },
-        synchronize: false,
+        synchronize: true,
       });
 
       return dataSource.initialize();

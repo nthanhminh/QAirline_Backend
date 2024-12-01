@@ -1,6 +1,6 @@
 import { EPlaneType } from "@modules/planes/enums/index.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, ValidateNested } from "class-validator";
+import { IsArray, IsEnum, IsNumber, ValidateNested } from "class-validator";
 import { SeatLayoutItem } from "../types/index.type";
 import { Type } from "class-transformer";
 
@@ -10,6 +10,30 @@ export class CreateNewSeatLayoutDto {
     })
     @IsEnum(EPlaneType)
     planeType: EPlaneType
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    numberOfBusinessSeats: number
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    numberOfPreminumEconomySeats: number
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    numberOfEconomySeats: number
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNumber()
+    numberOfBasicSeats: number
 
     @ApiProperty({
         required: true,

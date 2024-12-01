@@ -9,6 +9,12 @@ import { ESeatClass } from '@modules/seatsForPlaneType/enums/index.enum';
 @Entity()
 export class Ticket extends BaseEntity {
     @Column({
+        type: 'float',
+        default: 1000
+    })
+    price: number
+
+    @Column({
         type: 'text',
         default: 'Customer'
     })
@@ -34,9 +40,11 @@ export class Ticket extends BaseEntity {
     customerEmail: string
 
     @Column({
-        type: 'text',
+        type: 'text',       
+        nullable: true,     
+        default: null,      
     })
-    seatValue: string
+    seatValue: string | null;
 
     @Column({
         type: 'enum',

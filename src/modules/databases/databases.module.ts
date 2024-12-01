@@ -18,7 +18,7 @@ import { DataSource } from 'typeorm';
           ssl: {
             rejectUnauthorized: false, 
           },
-          synchronize: false,  
+          synchronize: true,  
         });
 
         return dataSource.initialize();

@@ -7,6 +7,8 @@ import { TicketController } from "./ticket.controller";
 import { ticketProviders } from "./ticket.provider";
 import { DatabaseModule } from "@modules/databases/databases.module";
 import { BookingModule } from "@modules/booking/booking.module";
+import { FlightModule } from "@modules/flights/flight.module";
+import { RedisCacheModule } from "@modules/redis/redis.module";
 
 @Module({
     imports: [
@@ -14,7 +16,9 @@ import { BookingModule } from "@modules/booking/booking.module";
         SharedModule,
         MenuModule,
         ServiceModule,
-        forwardRef(() => BookingModule)
+        forwardRef(() => BookingModule),
+        FlightModule,
+        RedisCacheModule
     ],
     exports: [TicketService],
     controllers: [TicketController],

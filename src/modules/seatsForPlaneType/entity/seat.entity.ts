@@ -12,6 +12,30 @@ export class Seat extends BaseEntity {
   })
   planeType: EPlaneType; 
 
+  @Column({
+    type: 'integer',
+    default: 20
+  })
+  numberOfBusinessSeats: number; 
+
+  @Column({
+    type: 'integer',
+    default: 30
+  })
+  numberOfPreminumEconomySeats: number; 
+
+  @Column({
+    type: 'integer',
+    default: 40
+  })
+  numberOfEconomySeats: number; 
+
+  @Column({
+    type: 'integer',
+    default: 50
+  })
+  numberOfBasicSeats: number; 
+
   @Column('json')
   seatLayoutForPlaneType: SeatLayoutItem[];
 

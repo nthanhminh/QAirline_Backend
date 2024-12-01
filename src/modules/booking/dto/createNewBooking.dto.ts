@@ -3,11 +3,11 @@ import { IsArray, IsNumber, IsUUID } from "class-validator";
 import { TicketBookingItem } from "../type/index.type";
 
 export class CreateNewBookingDto {
-    @ApiProperty({
-        required: true,
-    })
-    @IsNumber()
-    paymentAmount: number
+    // @ApiProperty({
+    //     required: true,
+    // })
+    // @IsNumber()
+    // paymentAmount: number
 
     @ApiProperty({
         required: true,

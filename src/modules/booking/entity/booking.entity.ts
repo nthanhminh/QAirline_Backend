@@ -17,12 +17,6 @@ export class Booking extends BaseEntity {
   })
   status: EBookingStatus;
 
-  @Column({
-    type: 'float',
-    default: 0
-  })
-  paymentAmount: number;
-
   @ManyToOne(() => User, (user) => user.bookings, { eager: true })
   @JoinColumn({ name: 'userId' })
   customer: User;
