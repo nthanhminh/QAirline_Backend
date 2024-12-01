@@ -5,9 +5,17 @@ import { Airport } from '@modules/airports/entity/airport.entity';
 import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
 import { Plane } from '@modules/planes/entity/plane.entity';
 import { Booking } from '@modules/booking/entity/booking.entity';
+import { EFlightStatus } from '../enums/index.enum';
 
   @Entity()
   export class Flight extends BaseEntity {
+    @Column({
+      type: 'enum',
+      enum: EFlightStatus,
+      default: EFlightStatus.ACTIVE
+    })
+    status: EFlightStatus
+
     @Column({ length: 500 })
     name: string;
 

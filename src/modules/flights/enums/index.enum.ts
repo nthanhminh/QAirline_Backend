@@ -6,3 +6,9 @@ export enum ESortFlightBy {
     DESC_DURATION = "DESC_DURATION",
     ASC_DURATION = "ASC_DURATION",
 }
+
+export enum EFlightStatus {
+    DONE = "DONE",
+    ACTIVE = "ACTIVE",
+    CANCELLED = "CANCELLED",
+}
