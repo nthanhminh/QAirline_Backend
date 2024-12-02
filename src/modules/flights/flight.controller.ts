@@ -15,7 +15,6 @@ import { SeatClassPrice } from "./type/index.type";
 
 @Controller('flights')
 @ApiTags('flights')
-@ApiBearerAuth('token')
 export class FlightController {
     constructor(
         private readonly flightService:FlightService,
@@ -45,7 +44,6 @@ export class FlightController {
         }
     }
 
-	@UseGuards(JwtAccessTokenGuard)
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto
@@ -59,6 +57,7 @@ export class FlightController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Post()
     async createNewFlight(@Body() dto: CreateNewFlightDto): Promise<AppResponse<Flight>> {
         return {
@@ -69,6 +68,7 @@ export class FlightController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Patch(':id')
     async updateFlight(
         @Param('id') id: string,
@@ -82,6 +82,7 @@ export class FlightController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Delete(':id')
     async deleteFlight(
         @Param('id') id: string

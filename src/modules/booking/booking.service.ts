@@ -20,6 +20,7 @@ import { ETimeZone } from "src/common/enum/index.enum";
 import * as moment from "moment";
 import { SeatClassPrice } from "@modules/flights/type/index.type";
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
+import { News } from "@modules/news/entity/news.entity";
 
 @Injectable()
 export class BookingService extends BaseServiceAbstract<Booking> {
@@ -138,7 +139,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           const bookingSaved = await queryRunner.manager.save(booking);
       
           // Thêm thông tin chi tiết vé
-          await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved, seatClassPrices);
+          await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved, seatClassPrices, flight.toAirport.discounts);
       
           // Commit transaction
           await queryRunner.commitTransaction();
@@ -231,11 +232,14 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         queryRunner: QueryRunner,
         tickets: TicketBookingItem[],
         bookingId: Booking,
-        seatClassPrices: SeatClassPrice[]
+        seatClassPrices: SeatClassPrice[],
+        discounts: News[],
       ): Promise<void> {
         for (const ticket of tickets) {
-          const basePrice = this._getSeatClassPriceForTicket(seatClassPrices, ticket.seatClass);
+          let basePrice = this._getSeatClassPriceForTicket(seatClassPrices, ticket.seatClass);
           console.log('basePriceBooking:', basePrice);
+          basePrice = this._handleBasePriceDiscount(discounts, basePrice);
+          console.log('basePriceBooking after:', basePrice);
           const newTicket = await this.tickeService.createNewTicket({
             customerEmail: ticket.customerEmail,
             customerName: ticket.customerName,
@@ -250,6 +254,29 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         }
       }
       
+      _handleBasePriceDiscount(discounts: News[], basePrice: number): number {
+        let basePriceHandled = basePrice;
+        console.log(discounts)
+        for(const discount of discounts) {
+          if(!discount.endTime) {
+            continue;
+          } else {
+            const now = convertNowToTimezone(ETimeZone.UTC).toDate();
+            const endTime = new Date(discount.endTime);
+            if(endTime < now) {
+              continue;
+            }
+          }
+          if(discount.percentDiscount > 0) {
+            basePriceHandled = basePriceHandled * (100 - discount.percentDiscount) * 1.0 / 100;
+          }
+          if (discount.cashDiscount > 0) {
+            basePriceHandled = basePriceHandled - discount.cashDiscount;
+          }
+        }
+        return basePriceHandled;
+      }
+
       async _getCustomerAndFlight(customerId: string, flightId: string) {
         const customer = await this.userService.findUserById(customerId);
         if (!customer) {

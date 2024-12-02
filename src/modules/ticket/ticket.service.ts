@@ -36,6 +36,12 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
     async createNewTicket(dto: CreateNewTicketDto, queryRunner: QueryRunner, basePrice: number) : Promise<Ticket> {
         let { bookingId, menuIds, serviceIds, ...data} = dto;
         let price = basePrice;
+        if(!menuIds) {
+            menuIds = [];
+        }
+        if(!serviceIds) {
+            serviceIds = []
+        }
         menuIds = [].concat(menuIds);
         serviceIds = [].concat(serviceIds);
 
@@ -146,21 +152,6 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         return ticket;
     }
 
-    // async getTicketFromFlightId(flightId: string) : Promise<String[]> {
-    //     const {items} =  await this.ticketRepository.findAll({}, {
-    //         relations: ['booking'],
-    //         where: {
-    //             booking: {
-    //                 flight: {
-    //                     id: flightId
-    //                 }
-    //             }
-    //         }
-    //     })
-
-    //     return items.map((ticket) => `${ticket.seatValue}-${ticket.seatClass}`);
-    // }
-
     async getTicketFromFlightId(flightId: string, queryRunner: QueryRunner): Promise<string[]> {
         const tickets = await queryRunner.manager
             .createQueryBuilder('ticket', 'ticket')
@@ -215,9 +206,9 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
                     }
                 }
             } else {
-                throw new UnprocessableEntityException('this ticket had checkined');
+                return ticket.seatValue
             }
-            return ticket.seatValue;
+            throw new UnprocessableEntityException('tickets.The return has been made in error.')
         } catch (error) {
           await queryRunner.rollbackTransaction();
           throw error;

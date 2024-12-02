@@ -13,7 +13,6 @@ import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('services')
 @ApiTags('services')
-@ApiBearerAuth('token')
 export class ServicesController {
     constructor(private readonly servicesHandler: ServiceHandler) {}
     @Get()
@@ -26,6 +25,7 @@ export class ServicesController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Post()
     async createNewService(@Body() dto: CreateNewServiceDto) : Promise<AppResponse<Services>> {
         return {
@@ -36,6 +36,7 @@ export class ServicesController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Patch(':id')
     async updateService(
         @Param('id') id: string,
@@ -49,6 +50,7 @@ export class ServicesController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Delete(':id')
     async deleteService(
         @Param('id') id: string

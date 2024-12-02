@@ -9,6 +9,9 @@ export class Services extends BaseEntity {
     @Column({ length: 500 })
     name: string;
 
+    @Column({ length: 500, default: '' })
+    imageUrl: string;
+
     @Column({ length: 500 })
     description: string;
 

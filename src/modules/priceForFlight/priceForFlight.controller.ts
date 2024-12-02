@@ -13,14 +13,10 @@ import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('flight_price')
 @ApiTags('flight_price')
-@ApiBearerAuth('token')
 export class FlightPriceController {
     
     constructor(private readonly flightPriceService: PriceFlightService) {}
 
-    @Roles(ERolesUser.ADMIN)
-    @UseGuards(RolesGuard)
-	@UseGuards(JwtAccessTokenGuard)
     @Get()
     async getAllPriceForFlight(
         @Query('flightId') flightId: string
@@ -33,6 +29,7 @@ export class FlightPriceController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Post()
     async createNewFlightPrice(
         @Body() dto: CreateNewPriceForFlightDto
@@ -45,6 +42,7 @@ export class FlightPriceController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Patch(':id')
     async updateFlightPrice(
         @Param('id') id: string,
@@ -58,6 +56,7 @@ export class FlightPriceController {
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Delete(':id')
     async deleteFlightPrice(
         @Param('id') id: string

@@ -5,6 +5,7 @@ import { Booking } from '@modules/booking/entity/booking.entity';
 import { Menu } from '@modules/menu/entity/menu.entity';
 import { Services } from '@modules/services/entity/service.entity';
 import { ESeatClass } from '@modules/seatsForPlaneType/enums/index.enum';
+import { ETicketStatus } from '../enums/index.enum';
 
 @Entity()
 export class Ticket extends BaseEntity {
@@ -58,6 +59,13 @@ export class Ticket extends BaseEntity {
         default: EBookingStatus.ACTIVE
     })
     status: EBookingStatus;
+
+    @Column({
+        type: 'enum',
+        enum: ETicketStatus,
+        default: ETicketStatus.NOT_CHECKED_IN
+    })
+    checkinStatus: ETicketStatus;
 
     @ManyToOne(() => Booking, (booking) => booking.tickets, { eager: true })
     @JoinColumn({ name: 'bookingId' })

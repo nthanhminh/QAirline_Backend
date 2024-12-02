@@ -7,6 +7,8 @@ import { CreateNewTicketDto } from "./dto/createNewTicket.dto";
 import { DataSource, UpdateResult } from "typeorm";
 import { StatusChangeDto } from "./dto/statusChange.dto";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
+import { CheckinDto } from "./dto/checkin.dto";
+import { ETicketStatus } from "./enums/index.enum";
 
 @Controller('tickets')
 @ApiTags('tickets')
@@ -32,10 +34,24 @@ export class TicketController {
         }
     }
     
-    @Patch('checking/:id')
+    @Patch('checkin/:id')
     async checking(@Param('id') id: string) : Promise<AppResponse<any>>{
         return {
             data: await this.ticketService.checkin(id),
+        }
+    }
+
+    @Patch('confirm/:id')
+    async confirm(
+        @Param('id') id: string,
+        @Body() dto: CheckinDto
+    ) : Promise<AppResponse<any>>{
+        const checkinData = {
+            ...dto,
+            checkinStatus: ETicketStatus.CHECKED_IN
+        }
+        return {
+            data: await this.ticketService.update(id, checkinData),
         }
     }
 

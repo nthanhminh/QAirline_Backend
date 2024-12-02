@@ -23,6 +23,8 @@ import { TicketModule } from '@modules/ticket/ticket.module';
 import { BookingModule } from '@modules/booking/booking.module';
 import { RedisCacheModule } from '@modules/redis/redis.module';
 import { StatisticModule } from '@modules/statistic/statistic.module';
+import { NewsModule } from '@modules/news/news.module';
+import { FilesModule } from '@modules/files/files.module';
 
 @Module({
   imports: [
@@ -79,7 +81,9 @@ import { StatisticModule } from '@modules/statistic/statistic.module';
     ServiceModule,
     BookingModule,
     TicketModule,
-    StatisticModule
+    StatisticModule,
+    NewsModule,
+    FilesModule
   ],
   controllers: [AppController],
   providers: [

@@ -40,6 +40,10 @@ export class UsersController {
         }
     }
 
+    @Roles(ERolesUser.USER)
+    @UseGuards(RolesGuard)
+	@ApiBearerAuth('token')
+	@UseGuards(JwtAccessTokenGuard)
     @Delete(':id')
     async deleteUser(@Param() id: string): Promise<AppResponse<any>> {
         return {

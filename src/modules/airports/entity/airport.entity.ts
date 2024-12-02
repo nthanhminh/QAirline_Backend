@@ -2,9 +2,11 @@ import {
     Entity,
     Column,
     OneToMany,
+    ManyToMany,
   } from 'typeorm';
   import { BaseEntity } from '@modules/shared/base/base.entity';
 import { Flight } from '@modules/flights/entity/flight.entity';
+import { News } from '@modules/news/entity/news.entity';
   
   @Entity()
   export class Airport extends BaseEntity {
@@ -22,5 +24,8 @@ import { Flight } from '@modules/flights/entity/flight.entity';
 
     @OneToMany(() => Flight, (flight) => flight.toAirport)
     arrivingFlights: Flight[];
+
+    @ManyToMany(() => News, (news) => news.airports)
+    discounts: News[];
 }
   

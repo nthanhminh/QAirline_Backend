@@ -8,12 +8,13 @@ import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
 import { ESortFlightBy } from "./enums/index.enum";
-import { durationToSeconds } from "src/helper/time.helper";
+import { convertNowToTimezone, durationToSeconds } from "src/helper/time.helper";
 import { AirportService } from "@modules/airports/airport.service";
 import { PlaneService } from "@modules/planes/planes.service";
 import * as moment from "moment";
 import { NumberOfSeatsForFlight, SeatClassPrice } from "./type/index.type";
 import { FlightPrice } from "@modules/priceForFlight/entity/priceForFlight.entity";
+import { ETimeZone } from "src/common/enum/index.enum";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -183,9 +184,15 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           .leftJoinAndSelect("flights_price.seatClassInfo", "flights_price_seatClassInfo") 
           .leftJoinAndSelect("flight.plane", "flight_plane") 
           .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout") 
-          .where("flight.id = :flightId", { flightId }) 
+          .leftJoinAndSelect("flight.toAirport", "flight_to_airport") 
+          .leftJoinAndSelect("flight_to_airport.discounts", "flight_to_airport_discounts") 
+          .where("flight.id = :flightId", { flightId })
+          .orderBy('flight_to_airport_discounts.percentDiscount', 'DESC')
+          .addOrderBy('flight_to_airport_discounts.cashDiscount', 'ASC')
           .getOne(); 
-    
+        if(!flight) {
+          throw new NotFoundException("flights.flight not found");
+        }
         return flight;
     }
 

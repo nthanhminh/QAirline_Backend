@@ -19,7 +19,7 @@ import { CacheController } from './redis.controller';
     },
     CacheService
   ],
-  controllers: [CacheController],
+  controllers: [],
   exports: ['REDIS_CLIENT', CacheService],
 })
 export class RedisCacheModule {}

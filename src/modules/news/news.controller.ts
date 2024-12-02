@@ -1,26 +1,27 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
-import { PaginationDto } from "src/common/dto/pagination.dto";
 import { AppResponse, FindAllResponse } from "src/types/common.type";
-import { MenuService } from "./food.service";
-import { Menu } from "./entity/menu.entity";
-import { CreateNewFoodDto } from "./dto/createNewFood.dto";
+import { FilterNewsDto } from "./dto/getNews.dto";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { News } from "./entity/news.entity";
+import { NewsService } from "./news.service";
+import { CreateNewsDto } from "./dto/createNews.dto";
 import { UpdateResult } from "typeorm";
-import { FoodUpdateDto } from "./dto/updateFood.dto";
+import { UpdateNewsDto } from "./dto/updateNews.dto";
 import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
 
-@Controller('menu')
-@ApiTags('menu')
-export class MenuController {
-
-    constructor(private readonly menuService: MenuService) {}
+@Controller('news')
+@ApiTags('news')
+export class NewsController {
+    constructor(
+        private readonly newsService: NewsService
+    ) {}
     @Get()
-    async getMenuList(@Query() dto: PaginationDto) : Promise<AppResponse<FindAllResponse<Menu>>> {
+    async getAllNews(@Query() dto: FilterNewsDto): Promise<AppResponse<FindAllResponse<News>>> {
         return {
-            data: await this.menuService.getFoodList(dto),
+            data: await this.newsService.getAllNews(dto)
         }
     }
 
@@ -29,9 +30,9 @@ export class MenuController {
 	@UseGuards(JwtAccessTokenGuard)
     @ApiBearerAuth('token')
     @Post()
-    async createNewFood(@Body() dto: CreateNewFoodDto) : Promise<AppResponse<Menu>> {
+    async createNews(@Body() dto: CreateNewsDto) : Promise<AppResponse<News>> {
         return {
-            data: await this.menuService.createNewFood(dto),
+            data: await this.newsService.createNews(dto),
         }
     }
 
@@ -40,12 +41,12 @@ export class MenuController {
 	@UseGuards(JwtAccessTokenGuard)
     @ApiBearerAuth('token')
     @Patch(':id')
-    async updateFood(
+    async updateNews(
         @Param('id') id: string,
-        @Body() dto: FoodUpdateDto
+        @Body() dto: UpdateNewsDto
     ) : Promise<AppResponse<UpdateResult>> {
         return {
-            data: await this.menuService.updateFood(id, dto),
+            data: await this.newsService.updateNews(id, dto),
         }
     }
 
@@ -54,11 +55,9 @@ export class MenuController {
 	@UseGuards(JwtAccessTokenGuard)
     @ApiBearerAuth('token')
     @Delete(':id')
-    async deleteFood(
-        @Param('id') id: string
-    ) : Promise<AppResponse<UpdateResult>> {
+    async deleteNews(@Param('id') id: string) : Promise<AppResponse<UpdateResult>> {
         return {
-            data: await this.menuService.deleteFood(id),
+            data: await this.newsService.deleteNews(id),
         }
     }
 }
