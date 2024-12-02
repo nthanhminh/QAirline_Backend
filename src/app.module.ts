@@ -25,9 +25,15 @@ import { RedisCacheModule } from '@modules/redis/redis.module';
 import { StatisticModule } from '@modules/statistic/statistic.module';
 import { NewsModule } from '@modules/news/news.module';
 import { FilesModule } from '@modules/files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'assets', 'uploads'),
+      serveRoot: '/assets/uploads', 
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
