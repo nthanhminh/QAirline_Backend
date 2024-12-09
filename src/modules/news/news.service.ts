@@ -109,4 +109,28 @@ export class NewsService extends BaseServiceAbstract<News> {
             skip: skip
         });
     }
+
+    async getNewsGroupByType(dto: FilterNewsDto): Promise<{ type: string; items: News[] }[]> {
+        const { page, pageSize } = dto;
+        const { skip, limit } = _getSkipLimit({ page, pageSize });
+    
+        const menuItems = await this.newsRepository.findAll({}, {
+            take: limit,
+            skip: skip,
+        });
+    
+        const groupedMenus = menuItems.items.reduce((acc, item) => {
+            const type = item.type;
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            acc[type].push(item);
+            return acc;
+        }, {} as Record<string, News[]>);
+    
+        return Object.entries(groupedMenus).map(([type, items]) => ({
+            type,
+            items,
+        }));
+    }
 }

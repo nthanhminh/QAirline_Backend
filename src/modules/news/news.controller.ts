@@ -11,6 +11,7 @@ import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller('news')
 @ApiTags('news')
@@ -22,6 +23,13 @@ export class NewsController {
     async getAllNews(@Query() dto: FilterNewsDto): Promise<AppResponse<FindAllResponse<News>>> {
         return {
             data: await this.newsService.getAllNews(dto)
+        }
+    }
+
+    @Get('groupByType')
+    async getNewsByGroupByType(@Query() dto: PaginationDto) : Promise<AppResponse<{ type: string; items: News[] }[]>> {
+        return {
+            data: await this.newsService.getNewsGroupByType(dto)
         }
     }
 
