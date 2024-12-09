@@ -4,9 +4,13 @@ export abstract class BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        select:true, 
+    })
     createdAt: Date;
 
-    @DeleteDateColumn()
+    @DeleteDateColumn({
+        select:true,
+    })
     deletedAt: Date | null; 
 }

@@ -3,4 +3,5 @@ export enum EServiceType {
     TAKE_CARE = "TAKE_CARE",
     INSURANCE = "INSURANCE",
     ANIMAL = "ANIMAL",
+    BAGGAGE = "BAGGAGE",
 }

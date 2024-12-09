@@ -89,7 +89,8 @@ export class FilesController {
 	) {
 		const imageUrl: string[] = []
 		for(const file of files) {
-			imageUrl.push(file.path);
+			const normalizedPath = file.path.replace(/\\/g, '/');
+			imageUrl.push(normalizedPath);
 		}
 		return {
 			data: imageUrl,

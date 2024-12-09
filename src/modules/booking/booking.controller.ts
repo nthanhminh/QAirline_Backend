@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { BookingService } from "./booking.service";
 import { CreateNewBookingDto } from "./dto/createNewBooking.dto";
@@ -14,6 +14,13 @@ export class BookingController {
     constructor(
         private readonly bookingsService: BookingService,
     ) {}
+
+    @Get(':id')
+    async getBookingDetail(@Param('id') id: string): Promise<AppResponse<Booking>> {
+        return {
+            data: await this.bookingsService.getBookingDetails(id)
+        }
+    }
 
     @Post()
     async createNewBooking(@Body() dto: CreateNewBookingDto) : Promise<AppResponse<Booking>> {

@@ -6,19 +6,24 @@ import {
 import { ERolesUser } from '../enums/index.enum';
 import { BaseEntity } from '@modules/shared/base/base.entity';
 import { Booking } from '@modules/booking/entity/booking.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User extends BaseEntity {
   @Column({ length: 500 })
   name: string;
 
-  @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER })
+  @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER, select: false })
   role: ERolesUser;
 
   @Column('text')
   email: string;
 
-  @Column('text')
+  @Exclude()
+  @Column({
+    type: 'text',
+    select: false,
+  })
   password: string;
 
   @Column('date', { default: () => 'CURRENT_DATE' })
@@ -27,13 +32,19 @@ export class User extends BaseEntity {
   @Column('int')
   age: number;
 
-  @Column('text', {
-    default: null,
+  @Exclude()
+  @Column({
+    type: 'text',
+    select: false,
+    default: null
   })
   currentAccessToken: string;
 
-  @Column('text', {
-    default: null,
+  @Exclude()
+  @Column({
+    type: 'text',
+    select: false,
+    default: null
   })
   refreshToken: string;
 

@@ -452,4 +452,11 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         }
         return 0; 
     }
+
+    async getBookingDetails(id: string) : Promise<Booking> {
+      const booking = await this.bookingRepository.findOneById(id, {
+        relations: ['flight','tickets']
+      }); 
+      return booking;
+    }
 }
