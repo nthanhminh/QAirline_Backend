@@ -5,6 +5,7 @@ import { Seat } from "./entity/seat.entity";
 import { CreateNewSeatLayoutDto } from "./dto/createNewSeatLayout.dto";
 import { UpdateResult } from "typeorm";
 import { UpdateSeatLayoutDto } from "./dto/updateSeatLayout.dto";
+import { EPlaneType } from "@modules/planes/enums/index.enum";
 
 @Injectable()
 export class SeatService extends BaseServiceAbstract<Seat> {
@@ -17,6 +18,12 @@ export class SeatService extends BaseServiceAbstract<Seat> {
 
     async createSeatLayout(dto: CreateNewSeatLayoutDto) : Promise<Seat> {
         return await this.seatRepository.create(dto);
+    }
+
+    async findOneByType(type: EPlaneType) : Promise<Seat> {
+        return await this.seatRepository.findOneByCondition({
+            planeType: type
+        });
     }
 
     async updateSeatLayout(id: string, dto: UpdateSeatLayoutDto) : Promise<UpdateResult> {

@@ -20,8 +20,11 @@ export class PlaneService extends BaseServiceAbstract<Plane> {
     }
 
     async createPlane(dto: CreateNewPlaneDto): Promise<Plane> {
-        const { seatLayoutId, ...data } = dto;
-        const seatLayout = await this.seatService.checkSeatLayoutExists(seatLayoutId);
+        const { type, ...data } = dto;
+        const seatLayout = await this.seatService.findOneByType(type);
+        if (!seatLayout) {
+            throw new NotFoundException('seats.seat layout not found');
+        }
         return await this.planeRepository.create({
             ...data,
             seatLayoutId: seatLayout
@@ -33,12 +36,14 @@ export class PlaneService extends BaseServiceAbstract<Plane> {
         if(!plane) {
             throw new NotFoundException('planes.Plane not found');
         }
-        const { seatLayoutId, ...data } = dto;
-        if(seatLayoutId !== plane.seatLayoutId.id) {
-            const seatLayout = await this.seatService.checkSeatLayoutExists(seatLayoutId);
+        const { type, ...data } = dto;
+        const seatLayout = await this.seatService.findOneByType(type);
+        if (!seatLayout) {
+            throw new NotFoundException('seats.seat layout not found');
         }
         return await this.planeRepository.update(id, {
             ...data,
+            seatLayoutId: seatLayout
         });
     }
 
