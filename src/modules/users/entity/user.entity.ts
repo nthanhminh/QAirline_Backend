@@ -13,7 +13,7 @@ export class User extends BaseEntity {
   @Column({ length: 500 })
   name: string;
 
-  @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER, select: false })
+  @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER})
   role: ERolesUser;
 
   @Column('text')
