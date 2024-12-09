@@ -4,7 +4,7 @@ import { Menu } from "./entity/menu.entity";
 import { MenuRepository } from "@repositories/food.repository";
 import { CreateNewFoodDto } from "./dto/createNewFood.dto";
 import { FoodUpdateDto } from "./dto/updateFood.dto";
-import { UpdateResult } from "typeorm";
+import { DataSource, UpdateResult } from "typeorm";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { FindAllResponse } from "src/types/common.type";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
@@ -14,6 +14,9 @@ export class MenuService extends BaseServiceAbstract<Menu> {
     constructor(
         @Inject('MENU_REPOSITORY') 
         private readonly menuRepository: MenuRepository,
+
+        @Inject('DATA_SOURCE') 
+        private readonly dataSource: DataSource
     ) {
         super(menuRepository);
     }
@@ -30,12 +33,51 @@ export class MenuService extends BaseServiceAbstract<Menu> {
         return await this.menuRepository.softDelete(id);
     }
 
-    async getFoodList(dto: PaginationDto) : Promise<FindAllResponse<Menu>> {
-        const {page, pageSize} = dto;
-        const {skip, limit } = _getSkipLimit({page, pageSize});
-        return await this.menuRepository.findAll({}, {
+    async getFoodList(dto: PaginationDto): Promise<{ type: string; items: Menu[] }[]> {
+        const { page, pageSize } = dto;
+        const { skip, limit } = _getSkipLimit({ page, pageSize });
+    
+        const menuItems = await this.menuRepository.findAll({}, {
             take: limit,
-            skip: skip
-        })
+            skip: skip,
+        });
+    
+        const groupedMenus = menuItems.items.reduce((acc, item) => {
+            const type = item.type;
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            acc[type].push(item);
+            return acc;
+        }, {} as Record<string, Menu[]>);
+    
+        return Object.entries(groupedMenus).map(([type, items]) => ({
+            type,
+            items,
+        }));
     }
+    
+
+    async getFoodList1(dto: PaginationDto): Promise<{ type: string; items: Menu[] }[]> {
+        const { page, pageSize } = dto;
+        const { skip, limit } = _getSkipLimit({ page, pageSize });
+    
+        const query = this.dataSource
+            .getRepository(Menu)
+            .createQueryBuilder("menu")
+            .select(["menu.type", "menu.id", "menu.name", "menu.price", "menu.description"])
+            .groupBy("menu.type")
+            .addGroupBy("menu.id")
+            .skip(skip)
+            .take(limit);
+    
+        const groupedResults = await query.getRawMany();
+
+        console.log(groupedResults);
+    
+        return groupedResults.map(result => ({
+            type: result.menu_type,
+            items: result.items,
+        }));
+    }    
 }

@@ -16,7 +16,7 @@ import { Roles } from "src/decorators/roles.decorator";
 export class ServicesController {
     constructor(private readonly servicesHandler: ServiceHandler) {}
     @Get()
-    async getAllServices(): Promise<AppResponse<FindAllResponse<Services>>> {
+    async getAllServices(): Promise<AppResponse<{ type: string; items: Services[] }[]>> {
         return {
             data: await this.servicesHandler.getAllServices()
         }

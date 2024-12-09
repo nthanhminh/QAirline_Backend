@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber } from "class-validator";
+import { EMenuType } from "../enums/index.enum";
 
 export class CreateNewFoodDto {
     @ApiProperty({
@@ -25,5 +26,11 @@ export class CreateNewFoodDto {
     })
     @IsNumber()
     price: number;
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsEnum(EMenuType)
+    type: EMenuType
 }
 

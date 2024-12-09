@@ -18,7 +18,7 @@ export class MenuController {
 
     constructor(private readonly menuService: MenuService) {}
     @Get()
-    async getMenuList(@Query() dto: PaginationDto) : Promise<AppResponse<FindAllResponse<Menu>>> {
+    async getMenuList(@Query() dto: PaginationDto) : Promise<AppResponse<{ type: string; items: Menu[] }[]>> {
         return {
             data: await this.menuService.getFoodList(dto),
         }

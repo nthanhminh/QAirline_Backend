@@ -28,7 +28,21 @@ export class ServiceHandler extends BaseServiceAbstract<Services> {
         return await this.serviceRepository.softDelete(id);
     }
 
-    async getAllServices() : Promise<FindAllResponse<Services>> {
-        return await this.serviceRepository.findAll({});
-    }
+    async getAllServices(): Promise<{ type: string; items: Services[] }[]> {
+        const services = await this.serviceRepository.findAll({});
+    
+        const groupedServices = services.items.reduce((acc, service) => {
+            const type = service.type;
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            acc[type].push(service);
+            return acc;
+        }, {} as Record<string, Services[]>);
+    
+        return Object.entries(groupedServices).map(([type, items]) => ({
+            type,
+            items,
+        }));
+    }    
 }
