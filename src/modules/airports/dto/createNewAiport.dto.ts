@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty } from "class-validator";
+import { IsEnum, IsNotEmpty } from "class-validator";
+import { ERegionType } from "../enums/index.enum";
 
 export class CreateNewAirportDto {
     @ApiProperty({
@@ -19,4 +20,11 @@ export class CreateNewAirportDto {
     })
     @IsNotEmpty()
     location: string
+
+    @ApiProperty({
+        required: true,
+    })
+    @IsNotEmpty()
+    @IsEnum(ERegionType)
+    region: string
 }

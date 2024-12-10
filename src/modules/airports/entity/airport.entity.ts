@@ -7,6 +7,7 @@ import {
   import { BaseEntity } from '@modules/shared/base/base.entity';
 import { Flight } from '@modules/flights/entity/flight.entity';
 import { News } from '@modules/news/entity/news.entity';
+import { ERegionType } from '../enums/index.enum';
   
   @Entity()
   export class Airport extends BaseEntity {
@@ -18,6 +19,13 @@ import { News } from '@modules/news/entity/news.entity';
 
     @Column({ length: 500 })
     location: string;  
+
+    @Column({ 
+      type: 'enum',
+      enum: ERegionType,
+      default: ERegionType.VIET_NAM
+    })
+    region: string;  
 
     @OneToMany(() => Flight, (flight) => flight.fromAirport)
     departingFlights: Flight[];

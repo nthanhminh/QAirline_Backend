@@ -453,10 +453,22 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         return 0; 
     }
 
-    async getBookingDetails(id: string) : Promise<Booking> {
-      const booking = await this.bookingRepository.findOneById(id, {
-        relations: ['flight','tickets']
-      }); 
+    async getBookingDetails(id: string): Promise<Booking> {
+      const booking = await this.dataSource
+        .getRepository(Booking)
+        .createQueryBuilder('booking')
+        .leftJoinAndSelect('booking.flight', 'flight') 
+        .leftJoinAndSelect('booking.tickets', 'tickets') 
+        .leftJoinAndSelect('tickets.menus', 'menus') 
+        .leftJoinAndSelect('tickets.services', 'services') 
+        .where('booking.id = :id', { id }) 
+        .getOne();
+    
+      if (!booking) {
+        throw new NotFoundException(`Booking with ID ${id} not found`);
+      }
+    
       return booking;
     }
+    
 }

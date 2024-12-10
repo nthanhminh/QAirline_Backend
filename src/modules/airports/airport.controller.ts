@@ -29,6 +29,13 @@ export class AirportsController {
         }
     }
 
+    @Get('groupByRegions')
+    async getAllAirportsGroupbyRegions() : Promise<AppResponse<{ [region: string]: Airport[] }>> {
+        return {
+            data: await this.airportService.getAllAirportByRegion(),
+        }
+    }
+
     @Roles(ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)

@@ -36,7 +36,7 @@ export class AirportService extends BaseServiceAbstract<Airport> {
         const { skip, limit} = _getSkipLimit({page, pageSize});
         const condition = {
             ...(code ? { code: Like(`%${code}%`) } : {}),
-            ...(search ? { name: Like(`%${name}%`) } : {}),
+            ...(search ? { name: Like(`%${search}%`) } : {}),
             ...(location ? { location: Like(`%${location}%`) } : {}),
         };
         return await this.airportRepository.findAll(
@@ -47,4 +47,19 @@ export class AirportService extends BaseServiceAbstract<Airport> {
             }
         );
     }
+
+    async getAllAirportByRegion(): Promise<{ [region: string]: Airport[] }> {
+        const airports = (await this.airportRepository.findAll({})).items;
+      
+        const groupedAirports = airports.reduce((result, airport) => {
+          const region = airport.region; 
+          if (!result[region]) {
+            result[region] = [];
+          }
+          result[region].push(airport);
+          return result;
+        }, {} as { [region: string]: Airport[] });
+      
+        return groupedAirports;
+    }      
 }
