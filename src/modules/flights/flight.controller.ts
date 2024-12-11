@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Inject, Param, Patch, Post, Query, UseGu
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { FlightService } from "./flight.service";
-import { AppResponse } from "src/types/common.type";
+import { AppResponse, FindAllResponse } from "src/types/common.type";
 import { Flight } from "./entity/flight.entity";
 import { CreateNewFlightDto } from "./dto/createNewFlight.dto";
 import { UpdateFlightDto } from "./dto/updateNewFight.dto";
@@ -47,7 +47,7 @@ export class FlightController {
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto
-    ) : Promise<AppResponse<ObjectLiteral[]>> {
+    ) : Promise<AppResponse<FindAllResponse<ObjectLiteral>>> {
         return {
             data: await this.flightService.filterFlight(dto),
             // data: await this.flightService.test()

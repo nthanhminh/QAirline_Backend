@@ -15,6 +15,7 @@ import * as moment from "moment";
 import { NumberOfSeatsForFlight, SeatClassPrice } from "./type/index.type";
 import { FlightPrice } from "@modules/priceForFlight/entity/priceForFlight.entity";
 import { ETimeZone } from "src/common/enum/index.enum";
+import { FindAllResponse } from "src/types/common.type";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -100,7 +101,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         return await this.flightRepository.softDelete(id);
     }
 
-    async filterFlight(dto: FilterFlightDto) : Promise<ObjectLiteral[]> {
+    async filterFlight(dto: FilterFlightDto) : Promise<FindAllResponse<ObjectLiteral>> {
         const { search, status, fromAiportId, toAiportId, departureTime, sortedByPrice, sortedByDeparture, page, pageSize } = dto;
         const { skip, limit } = _getSkipLimit({ page, pageSize });
     
@@ -188,11 +189,12 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             queryBuilder.addOrderBy("flight.departureTime", "ASC");
           }
         }
-
         queryBuilder.skip(skip).take(limit);
-    
         const [flights, cnt] = await queryBuilder.getManyAndCount();
-        return flights;
+        return {
+          count: cnt,
+          items: flights
+        };
     }
 
     async getFlightWithDetailInfo(flightId: string) : Promise<Flight> {
