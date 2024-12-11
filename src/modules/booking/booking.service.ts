@@ -144,7 +144,17 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           // Commit transaction
           await queryRunner.commitTransaction();
       
-          return booking;
+          const updatedBooking = await this.bookingRepository.findOneById(bookingSaved.id, {
+            relations: ['tickets'],
+          });
+          if (updatedBooking?.customer) {
+            console.log('test');
+            delete updatedBooking.customer.password;
+            delete updatedBooking.customer.currentAccessToken;
+            delete updatedBooking.customer.refreshToken;
+          }
+          console.log(updatedBooking);
+          return updatedBooking;
         } catch (error) {
           // Rollback transaction nếu có lỗi
           await queryRunner.rollbackTransaction();
@@ -466,6 +476,12 @@ export class BookingService extends BaseServiceAbstract<Booking> {
     
       if (!booking) {
         throw new NotFoundException(`Booking with ID ${id} not found`);
+      }
+
+      if(booking.customer) {
+        delete booking.customer.password;
+        delete booking.customer.currentAccessToken;
+        delete booking.customer.refreshToken;
       }
     
       return booking;

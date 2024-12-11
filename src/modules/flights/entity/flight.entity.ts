@@ -1,6 +1,6 @@
-  import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
-  import { BaseEntity } from '@modules/shared/base/base.entity';
-  import { FlightPrice } from '@modules/priceForFlight/entity/priceForFlight.entity';
+import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
+import { BaseEntity } from '@modules/shared/base/base.entity';
+import { FlightPrice } from '@modules/priceForFlight/entity/priceForFlight.entity';
 import { Airport } from '@modules/airports/entity/airport.entity';
 import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
 import { Plane } from '@modules/planes/entity/plane.entity';
