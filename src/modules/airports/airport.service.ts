@@ -2,19 +2,23 @@ import { Inject, Injectable } from "@nestjs/common";
 import { AirportRepository } from "@repositories/airport.repository";
 import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { Airport } from "./entity/airport.entity";
-import { DeepPartial, IsNull, Like, UpdateResult } from "typeorm";
+import { DataSource, DeepPartial, IsNull, Like, UpdateResult } from "typeorm";
 import { CreateNewAirportDto } from "./dto/createNewAiport.dto";
 import { UpdateAirportDto } from "./dto/updateAirport.dto";
 import { FindAllResponse } from "src/types/common.type";
 import { FindAirportDto } from "./dto/findAirport.dto";
 import { take } from "rxjs";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
+import { response } from "express";
 
 @Injectable()
 export class AirportService extends BaseServiceAbstract<Airport> {
     constructor(
         @Inject('AIRPORT_REPOSITORY')
         private readonly airportRepository: AirportRepository,
+
+        @Inject('DATA_SOURCE')
+        private readonly dataSource: DataSource
       ) {
         super(airportRepository);
     }
@@ -34,32 +38,50 @@ export class AirportService extends BaseServiceAbstract<Airport> {
     async findAirport(dto: FindAirportDto): Promise<FindAllResponse<Airport>> {
         const { code, location, search, page, pageSize } = dto;
         const { skip, limit} = _getSkipLimit({page, pageSize});
-        const condition = {
-            ...(code ? { code: Like(`%${code}%`) } : {}),
-            ...(search ? { name: Like(`%${search}%`) } : {}),
-            ...(location ? { location: Like(`%${location}%`) } : {}),
-        };
-        return await this.airportRepository.findAll(
-            condition,
-            {
-               take: limit,
-               skip: skip,
-            }
-        );
+        const queryBuilder = this.dataSource.getRepository(Airport).createQueryBuilder('airport');
+
+        if (search) {
+            queryBuilder.orWhere('LOWER(airport.code) LIKE LOWER(:search)', { search: `%${search}%` });
+            queryBuilder.orWhere('LOWER(airport.name) LIKE LOWER(:search)', { search: `%${search}%` });
+            queryBuilder.orWhere('LOWER(airport.location) LIKE LOWER(:search)', { search: `%${search}%` });
+        }
+        
+        if (location) {
+            queryBuilder.andWhere('LOWER(airport.location) LIKE LOWER(:location)', { location: `%${location}%` });
+        }
+        
+        if (code) {
+            queryBuilder.andWhere('LOWER(airport.code) LIKE LOWER(:code)', { code: `%${code}%` });
+        }
+          
+        queryBuilder.take(limit).skip(skip);
+
+        const [airports, count] = await queryBuilder.getManyAndCount();
+
+        return {
+            count: count,
+            items: airports
+        }
     }
 
-    async getAllAirportByRegion(): Promise<{ [region: string]: Airport[] }> {
+    async getAllAirportByRegion(): Promise<{ type: string; items: Airport[] }[]> {
         const airports = (await this.airportRepository.findAll({})).items;
-      
+    
         const groupedAirports = airports.reduce((result, airport) => {
-          const region = airport.region; 
-          if (!result[region]) {
-            result[region] = [];
-          }
-          result[region].push(airport);
-          return result;
+            const region = airport.region;  
+    
+            if (!result[region]) {
+                result[region] = [];
+            }
+    
+            result[region].push(airport);  
+            return result;
         }, {} as { [region: string]: Airport[] });
-      
-        return groupedAirports;
-    }      
+    
+        
+        return Object.entries(groupedAirports).map(([region, airportsInRegion]) => ({
+            type: region,       
+            items: airportsInRegion,  
+        }));
+    }         
 }

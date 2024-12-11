@@ -30,7 +30,7 @@ export class AirportsController {
     }
 
     @Get('groupByRegions')
-    async getAllAirportsGroupbyRegions() : Promise<AppResponse<{ [region: string]: Airport[] }>> {
+    async getAllAirportsGroupbyRegions() : Promise<AppResponse<{ type: string; items: Airport[] }[]>> {
         return {
             data: await this.airportService.getAllAirportByRegion(),
         }

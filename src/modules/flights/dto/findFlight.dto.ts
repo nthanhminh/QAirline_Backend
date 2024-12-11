@@ -1,18 +1,27 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsOptional, IsUUID } from "class-validator";
 import { PaginationDto } from "src/common/dto/pagination.dto";
-import { ESortFlightBy } from "../enums/index.enum";
+import { EFlightStatus, ESortFlightByDeparture, ESortFlightByPrice } from "../enums/index.enum";
 import { IsDateTimeDDMMYYYY } from "src/validators/index.validator";
 
 export class FilterFlightDto extends PaginationDto {
     @ApiProperty({
         required: false,
-        enum: ESortFlightBy,
-        enumName: 'ESortFlightBy'
+        enum: ESortFlightByPrice,
+        enumName: 'ESortFlightByPrice'
     })
     @IsOptional()
-    @IsEnum(ESortFlightBy)
-    sortedBy?: ESortFlightBy
+    @IsEnum(ESortFlightByPrice)
+    sortedByPrice?: ESortFlightByPrice
+
+    @ApiProperty({
+        required: false,
+        enum: ESortFlightByDeparture,
+        enumName: 'ESortFlightByDeparture'
+    })
+    @IsOptional()
+    @IsEnum(ESortFlightByDeparture)
+    sortedByDeparture?: ESortFlightByDeparture
 
     @ApiProperty({
         required: false,
@@ -34,4 +43,12 @@ export class FilterFlightDto extends PaginationDto {
     @IsOptional()
     @IsDateTimeDDMMYYYY()
     departureTime?: string;
+
+    @ApiProperty({
+        required: false,
+        enum: EFlightStatus
+    })
+    @IsOptional()
+    @IsEnum(EFlightStatus)
+    status?: EFlightStatus;
 }

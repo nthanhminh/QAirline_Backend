@@ -7,7 +7,7 @@ import { UpdateFlightDto } from "./dto/updateNewFight.dto";
 import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
-import { ESortFlightBy } from "./enums/index.enum";
+import { ESortFlightByDeparture, ESortFlightByPrice } from "./enums/index.enum";
 import { convertNowToTimezone, durationToSeconds } from "src/helper/time.helper";
 import { AirportService } from "@modules/airports/airport.service";
 import { PlaneService } from "@modules/planes/planes.service";
@@ -101,7 +101,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     }
 
     async filterFlight(dto: FilterFlightDto) : Promise<ObjectLiteral[]> {
-        const { search, fromAiportId, toAiportId, departureTime, sortedBy, page, pageSize } = dto;
+        const { search, status, fromAiportId, toAiportId, departureTime, sortedByPrice, sortedByDeparture, page, pageSize } = dto;
         const { skip, limit } = _getSkipLimit({ page, pageSize });
     
         const condition: any = {};
@@ -136,6 +136,10 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           queryBuilder.andWhere("flight_toAirport.id = :toAiportId", { toAiportId });
         }
 
+        if (status) {
+            queryBuilder.andWhere("flight.status = :status", { status });
+        }
+
         if (departureTime) {
           const startOfDay = moment(departureTime, "DD-MM-YYYY").startOf('day').toDate();
           const endOfDay = moment(departureTime, "DD-MM-YYYY").endOf('day').toDate();
@@ -146,33 +150,48 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           });
         }
         
-        switch (sortedBy) {
-          case ESortFlightBy.ASC_DEPARTURE_TIME:
-            queryBuilder.orderBy("flight.departureTime", "ASC");
-            break;
-          case ESortFlightBy.DESC_DEPARTURE_TIME:
-            queryBuilder.orderBy("flight.departureTime", "DESC");
-            break;
-          case ESortFlightBy.ASC_DURATION:
-            queryBuilder.orderBy("flight.duration", "ASC");
-            break;
-          case ESortFlightBy.DESC_DURATION:
-            queryBuilder.orderBy("flight.duration", "DESC");
-            break;
-          case ESortFlightBy.ASC_PRICE:
-            queryBuilder.orderBy("min_price", "ASC"); 
-            break;
-          case ESortFlightBy.DESC_PRICE:
-            queryBuilder.orderBy("min_price", "DESC"); 
-            break;
-          default:
-            queryBuilder.orderBy("flight.departureTime", "ASC");
+        // switch (sortedBy) {
+        //   case ESortFlightBy.ASC_DEPARTURE_TIME:
+        //     queryBuilder.orderBy("flight.departureTime", "ASC");
+        //     break;
+        //   case ESortFlightBy.DESC_DEPARTURE_TIME:
+        //     queryBuilder.orderBy("flight.departureTime", "DESC");
+        //     break;
+        //   case ESortFlightBy.ASC_DURATION:
+        //     queryBuilder.orderBy("flight.duration", "ASC");
+        //     break;
+        //   case ESortFlightBy.DESC_DURATION:
+        //     queryBuilder.orderBy("flight.duration", "DESC");
+        //     break;
+        //   case ESortFlightBy.ASC_PRICE:
+        //     queryBuilder.orderBy("min_price", "ASC"); 
+        //     break;
+        //   case ESortFlightBy.DESC_PRICE:
+        //     queryBuilder.orderBy("min_price", "DESC"); 
+        //     break;
+        //   default:
+        //     queryBuilder.orderBy("flight.departureTime", "ASC");
+        // }
+
+        if(sortedByPrice) {
+          if(sortedByPrice === ESortFlightByPrice.ASC_PRICE) {
+            queryBuilder.addOrderBy("min_price", "ASC"); 
+          } else {
+            queryBuilder.addOrderBy("min_price", "DESC"); 
+          }
+        }
+
+        if(sortedByDeparture) {
+          if(sortedByDeparture === ESortFlightByDeparture.DESC_DEPARTURE_TIME) {
+            queryBuilder.addOrderBy("flight.departureTime", "DESC");
+          } else {
+            queryBuilder.addOrderBy("flight.departureTime", "ASC");
+          }
         }
 
         queryBuilder.skip(skip).take(limit);
     
         const [flights, cnt] = await queryBuilder.getManyAndCount();
-        console.log(cnt);
         return flights;
     }
 
