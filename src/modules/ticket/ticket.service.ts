@@ -164,6 +164,18 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         return tickets.map(ticket => `${ticket.seatValue}-${ticket.seatClass}`);
     }
 
+    async getNumberOfTicketFromFlightId(flightId: string, queryRunner: QueryRunner): Promise<number> {
+        const tickets = await queryRunner.manager
+            .createQueryBuilder('ticket', 'ticket')
+            .leftJoinAndSelect('ticket.booking', 'booking')
+            .leftJoinAndSelect('booking.flight', 'flight')
+            .where('flight.id = :flightId', { flightId })
+            .select(['ticket.seatValue', 'ticket.seatClass'])
+            .getMany();
+    
+        return tickets.length;
+    }
+
     async checkin(id: string) : Promise<string> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();

@@ -11,7 +11,7 @@ async function bootstrap() {
     methods: 'GET, POST, PATCH, DELETE', 
     allowedHeaders: 'Content-Type, Authorization',
   });
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // app.useGlobalInterceptors(new LoggingInterceptor());
   const configService = app.get(ConfigService);
   const config = new DocumentBuilder()
     .setTitle('Users API')

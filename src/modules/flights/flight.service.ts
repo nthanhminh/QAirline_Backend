@@ -207,7 +207,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout") 
           .leftJoinAndSelect("flight.fromAirport", "flight_from_airport")
           .leftJoinAndSelect("flight.toAirport", "flight_to_airport") 
-          .leftJoinAndSelect("flight_to_airport.discounts", "flight_to_airport_discounts") 
+          .leftJoinAndSelect("flight_to_airport.discounts", "flight_to_airport_discounts")
           .where("flight.id = :flightId", { flightId })
           .orderBy('flight_to_airport_discounts.percentDiscount', 'DESC')
           .addOrderBy('flight_to_airport_discounts.cashDiscount', 'ASC')

@@ -27,9 +27,14 @@ import { NewsModule } from '@modules/news/news.module';
 import { FilesModule } from '@modules/files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      ttl: 60, 
+      limit: 1000, 
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'assets', 'uploads'),
       serveRoot: '/assets/uploads', 

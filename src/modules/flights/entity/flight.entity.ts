@@ -40,7 +40,7 @@ import { EFlightStatus } from '../enums/index.enum';
     @Column('float', { default: 0 })
     exit_row_seat_price: number;
 
-    @Column({ length: 500 })
+    @Column({ length: 500, default: '' })
     description: string;
 
     @ManyToOne(() => Airport, (airport) => airport.departingFlights, { eager: true })

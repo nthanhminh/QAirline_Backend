@@ -7,7 +7,8 @@ import { Column, Entity, OneToMany } from "typeorm";
 export class SeatClassInfo extends BaseEntity {
     @Column({
         type: "enum",
-        enum: ESeatClass
+        enum: ESeatClass,
+        default: ESeatClass.PREMIUM_ECONOMY
     })
     name: ESeatClass
 

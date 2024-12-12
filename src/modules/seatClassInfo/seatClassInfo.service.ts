@@ -6,6 +6,7 @@ import { CreateNewSeatClassInfoDto } from "./dto/createNewSeatClassInfo.dto";
 import { UpdateSeatClassInfoDto } from "./dto/updateSeatClassInfo.dto";
 import { UpdateResult } from "typeorm";
 import { FindAllResponse } from "src/types/common.type";
+import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 
 @Injectable()
 export class SeatClassInfoService extends BaseServiceAbstract<SeatClassInfo> {
@@ -30,5 +31,11 @@ export class SeatClassInfoService extends BaseServiceAbstract<SeatClassInfo> {
 
     async getAllSeatClassInfo() : Promise<FindAllResponse<SeatClassInfo>> {
         return await this.seatClassInfoRepository.findAll({});
+    }
+
+    async getSeatClassInfoByClass(seatClass: ESeatClass) : Promise<SeatClassInfo> {
+        return await this.seatClassInfoRepository.findOneByCondition({
+            name: seatClass
+        });
     }
 }

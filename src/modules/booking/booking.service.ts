@@ -186,7 +186,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
               }
               numberOfBusinessSeats--;
               break;
-            case ESeatClass.PREMINUM_ECONOMY:
+            case ESeatClass.PREMIUM_ECONOMY:
               if(numberOfPreminumEconomySeats <=0 ) {
                 throw new Error(`No available seat for ticket: ${ticket.seatClass}`);
               }

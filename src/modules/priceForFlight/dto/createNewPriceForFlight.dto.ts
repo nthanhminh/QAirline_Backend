@@ -1,5 +1,6 @@
+import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsUUID } from "class-validator";
+import { IsEnum, IsNumber, IsUUID } from "class-validator";
 
 export class CreateNewPriceForFlightDto {
     @ApiProperty({
@@ -17,6 +18,6 @@ export class CreateNewPriceForFlightDto {
     @ApiProperty({
         required: true
     })
-    @IsUUID()
-    seatClassInfoId: string
+    @IsEnum(ESeatClass)
+    seatClass: ESeatClass
 }

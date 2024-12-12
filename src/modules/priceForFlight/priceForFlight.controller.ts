@@ -10,6 +10,7 @@ import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
+import { CreateAllPriceDto, UpdateAllPriceDto } from "./dto/updateAllPrice.dto";
 
 @Controller('flight_price')
 @ApiTags('flight_price')
@@ -43,6 +44,19 @@ export class FlightPriceController {
     @UseGuards(RolesGuard)
 	@UseGuards(JwtAccessTokenGuard)
     @ApiBearerAuth('token')
+    @Patch('updateAllPrice')
+    async updateAllPrice(
+        @Body() dto: UpdateAllPriceDto,
+    ): Promise<AppResponse<boolean>> {
+        return {
+            data: await this.flightPriceService.updateAllFlightPrice(dto)
+        }
+    }
+
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
     @Patch(':id')
     async updateFlightPrice(
         @Param('id') id: string,
@@ -50,6 +64,19 @@ export class FlightPriceController {
     ) : Promise<AppResponse<UpdateResult>> {
         return {
             data: await this.flightPriceService.updateFlightPrice(id, dto),
+        }
+    }
+
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
+    @ApiBearerAuth('token')
+    @Post('createAllPrice')
+    async createAllPrice(
+        @Body() dto: CreateAllPriceDto,
+    ): Promise<AppResponse<boolean>> {
+        return {
+            data: await this.flightPriceService.createAllFlightPrice(dto)
         }
     }
 
