@@ -69,7 +69,7 @@ export class MenuService extends BaseServiceAbstract<Menu> {
             .groupBy("menu.type")
             .addGroupBy("menu.id")
             .skip(skip)
-            .take(limit);
+            .limit(limit);
     
         const groupedResults = await query.getRawMany();
 

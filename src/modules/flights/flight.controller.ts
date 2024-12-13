@@ -12,6 +12,7 @@ import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
 import { SeatClassPrice } from "./type/index.type";
+import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller('flights')
 @ApiTags('flights')
@@ -26,6 +27,13 @@ export class FlightController {
     async getFlightById(@Query('id') id: string) : Promise<AppResponse<Flight>> {
         return {
             data: await this.flightService.getFlightWithDetailInfo(id),
+        }
+    }
+
+    @Get('getAllFlight')
+    async getAllFlight(@Query() dto: PaginationDto) : Promise<AppResponse<FindAllResponse<Flight>>> {
+        return {
+            data: await this.flightService.getAllFlightWithDetailInfo(dto),
         }
     }
 

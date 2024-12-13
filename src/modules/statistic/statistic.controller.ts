@@ -79,4 +79,24 @@ export class StatisticController {
             data: await this.statisticService.getBookingDetails(dto),
         }
     }
+
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
+    @Get('getAllTickets') 
+    async getAllTickets() : Promise<AppResponse<number>> {
+        return {
+            data: await this.statisticService.getAllTicket()
+        }
+    }
+
+    @Roles(ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
+    @Get('getAllFlights') 
+    async getAllFlights() : Promise<AppResponse<number>> {
+        return {
+            data: await this.statisticService.getAllFlight()
+        }
+    }
 }

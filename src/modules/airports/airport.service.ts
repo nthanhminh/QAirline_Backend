@@ -54,7 +54,7 @@ export class AirportService extends BaseServiceAbstract<Airport> {
             queryBuilder.andWhere('LOWER(airport.code) LIKE LOWER(:code)', { code: `%${code}%` });
         }
           
-        queryBuilder.take(limit).skip(skip);
+        queryBuilder.skip(skip).limit(limit);
 
         const [airports, count] = await queryBuilder.getManyAndCount();
 

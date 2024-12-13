@@ -16,6 +16,8 @@ import { NumberOfSeatsForFlight, SeatClassPrice } from "./type/index.type";
 import { FlightPrice } from "@modules/priceForFlight/entity/priceForFlight.entity";
 import { ETimeZone } from "src/common/enum/index.enum";
 import { FindAllResponse } from "src/types/common.type";
+import { PaginationDto } from "src/common/dto/pagination.dto";
+import { EBookingStatus } from "@modules/booking/enums/index.enum";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -189,7 +191,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             queryBuilder.addOrderBy("flight.departureTime", "ASC");
           }
         }
-        queryBuilder.skip(skip).take(limit);
+        queryBuilder.skip(skip).limit(limit);
         const [flights, cnt] = await queryBuilder.getManyAndCount();
         return {
           count: cnt,
@@ -208,15 +210,50 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           .leftJoinAndSelect("flight.fromAirport", "flight_from_airport")
           .leftJoinAndSelect("flight.toAirport", "flight_to_airport") 
           .leftJoinAndSelect("flight_to_airport.discounts", "flight_to_airport_discounts")
+          .leftJoinAndSelect("flight.bookings", "flight_bookings")
+          .leftJoinAndSelect(
+            "flight_bookings.tickets", 
+            "flight_bookings_tickets", 
+            "flight_bookings_tickets.status = :activeStatus", 
+            { activeStatus: EBookingStatus.ACTIVE }
+          )
           .where("flight.id = :flightId", { flightId })
-          .orderBy('flight_to_airport_discounts.percentDiscount', 'DESC')
-          .addOrderBy('flight_to_airport_discounts.cashDiscount', 'ASC')
           .getOne(); 
         if(!flight) {
           throw new NotFoundException("flights.flight not found");
         }
         return flight;
     }
+
+    async getAllFlightWithDetailInfo(dto: PaginationDto) : Promise<FindAllResponse<Flight>> {
+      const {page, pageSize} = dto;
+      const {skip, limit} = _getSkipLimit({page, pageSize});
+      const [flights, count] = await this.dataSource
+        .getRepository(Flight) 
+        .createQueryBuilder("flight")
+        .leftJoinAndSelect("flight.flightsPrice", "flights_price")
+        .leftJoinAndSelect("flights_price.seatClassInfo", "flights_price_seatClassInfo") 
+        .leftJoinAndSelect("flight.plane", "flight_plane") 
+        .leftJoinAndSelect("flight_plane.seatLayoutId", "flight_plane_seatlayout") 
+        .leftJoinAndSelect("flight.fromAirport", "flight_from_airport")
+        .leftJoinAndSelect("flight.toAirport", "flight_to_airport") 
+        .leftJoinAndSelect("flight_to_airport.discounts", "flight_to_airport_discounts")
+        .leftJoinAndSelect("flight.bookings", "flight_bookings")
+        .leftJoinAndSelect(
+          "flight_bookings.tickets", 
+          "flight_bookings_tickets", 
+          "flight_bookings_tickets.status = :activeStatus", 
+          { activeStatus: EBookingStatus.ACTIVE }
+        )
+        .orderBy('flight.createdAt', 'DESC')
+        .skip(skip)
+        .limit(limit)
+        .getManyAndCount(); 
+      return {
+        items: flights,
+        count: count
+      };
+  }
 
     async getSeatClassPriceForFlight(flightId: string) : Promise<SeatClassPrice[]> {
       const flight = await this.dataSource

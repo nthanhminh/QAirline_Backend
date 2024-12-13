@@ -10,6 +10,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
 import { BookingDetailDto } from "./dto/bookingDetail.dto";
 import * as moment from "moment";
+import { EBookingStatus } from "@modules/booking/enums/index.enum";
 
 export class StatisticService {
     constructor(
@@ -40,6 +41,41 @@ export class StatisticService {
             .andWhere('flight.status = :status', { status: status })
             .getCount(),
         ]);
+    }
+
+    async getTotalRevenue() {
+        const [thisMonthData, lastMonthData] =  await Promise.all([ 
+            this.dataSource
+            .getRepository(Flight)
+            .createQueryBuilder('flight')
+            .leftJoin('flight.bookings', 'flight_bookings')
+            .leftJoin(
+                'flight_bookings.tickets',
+                'flight_bookings_tickets',
+                'flight_bookings_tickets.status = :activeStatus',
+                { activeStatus: EBookingStatus.ACTIVE }
+            )
+            .select('SUM(flight_bookings_tickets.price)', 'totalPrice') 
+            .where('DATE_TRUNC(\'month\', flight.departureTime) = DATE_TRUNC(\'month\', CURRENT_DATE)') // Chuyến bay trong tháng hiện tại
+            .getRawOne(),
+            this.dataSource
+            .getRepository(Flight)
+            .createQueryBuilder('flight')
+            .leftJoin('flight.bookings', 'flight_bookings')
+            .leftJoin(
+                'flight_bookings.tickets',
+                'flight_bookings_tickets',
+                'flight_bookings_tickets.status = :activeStatus',
+                { activeStatus: EBookingStatus.ACTIVE } 
+            )
+            .select('SUM(flight_bookings_tickets.price)', 'totalPrice') 
+            .where('DATE_TRUNC(\'month\', flight.departureTime) = DATE_TRUNC(\'month\', CURRENT_DATE - INTERVAL \'1 month\')')
+            .getRawOne()
+        ])
+        console.log(thisMonthData, lastMonthData);
+        const totalPriceThisMonth = thisMonthData["totalPrice"] ?? 0;
+        const totalPriceLastMonth = lastMonthData["totalPrice"] ?? 0;
+        return [totalPriceThisMonth, totalPriceLastMonth];
     }
 
     async getFlightsCountByMonth() {
@@ -75,30 +111,56 @@ export class StatisticService {
         return finalResult;
     }    
 
+    async getAllTicket(): Promise<number> {
+        const count = await this.dataSource
+          .getRepository(Ticket)
+          .createQueryBuilder('ticket')
+          .where('ticket.status = :status', { status: EBookingStatus.ACTIVE })
+          .getCount();
+        return count;
+    }
+      
+    async getAllFlight(): Promise<number> {
+        const count = await this.dataSource
+          .getRepository(Flight)
+          .createQueryBuilder('flight')
+          .where('flight.status != :status', { status: EFlightStatus.CANCELLED })
+          .getCount();
+        return count;
+    }
+  
+
     async getFlightStatisticDashboard() : Promise<FlightStatisticDashboard> {
         const [
             [flightsThisMonthActive, flightsLastMonthActive],
             [flightsThisMonthDone, flightsLastMonthDone],
             [flightsThisMonthCancelled, flightsLastMonthCancelled],
+            [totalRevenueThisMonth, totalRevenueLastMonth],
         ] = await Promise.all([
             this.getFlightStatistics(EFlightStatus.ACTIVE),
             this.getFlightStatistics(EFlightStatus.DONE),
             this.getFlightStatistics(EFlightStatus.CANCELLED),
+            this.getTotalRevenue()
         ]);
 
         return {
-            Active: {
+            "ACTIVE": {
                 flightsThisMonth: flightsThisMonthActive,
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthActive, flightsLastMonthActive)
             },
-            Done: {
+            "DONE": {
                 flightsThisMonth: flightsLastMonthDone,
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthDone, flightsLastMonthDone),
             },
-            Cancelled: {
+            "CANCELLED": {
                 flightsThisMonth: flightsLastMonthCancelled,
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthCancelled, flightsLastMonthCancelled),
+            },
+            "REVENUE": {
+                flightsThisMonth: totalRevenueThisMonth,
+                diffrentLastMonth: this._getFlightStatisticsConsider(totalRevenueThisMonth, totalRevenueLastMonth)
             }
+            
         }
     }
 
@@ -168,6 +230,7 @@ export class StatisticService {
             .orderBy('totalFlights', 'DESC') 
             .limit(5)            
             .getRawMany();
+
         return result;
     }    
 
@@ -203,8 +266,8 @@ export class StatisticService {
                 .addGroupBy('fromAirport.code')     
                 .addGroupBy('toAirport.code')      
                 .orderBy('totalTickets', 'DESC') 
-                .take(limit)
-                .skip(skip)          
+                .skip(skip)      
+                .limit(limit)    
                 .getRawMany();
         return result;
     }
@@ -231,7 +294,8 @@ export class StatisticService {
                 'toAirport.code AS toAirportCode',
                 'json_agg(tickets) FILTER(WHERE tickets.id IS NOT NULL) AS flightTickets'  
             ])
-            .where('flight.id IS NOT NULL');  
+            .where('flight.id IS NOT NULL')
+            .orderBy('flight.createdAt', 'DESC');  
 
         if (flightCode) {
             queryBuilder.andWhere('flight.flightCode = :flightCode', { flightCode });
@@ -257,9 +321,9 @@ export class StatisticService {
             .addGroupBy('toAirport.code')
             
         queryBuilder.orderBy('flight.departureTime', 'ASC')
-            .orderBy('flight.id', 'ASC')
-            .take(limit) 
-            .skip(skip);  
+            .orderBy('flight.id', 'ASC') 
+            .skip(skip)
+            .limit(limit);  
 
         const result = await queryBuilder.getRawMany();
 

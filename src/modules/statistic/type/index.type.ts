@@ -6,9 +6,10 @@ export type FlightStatistic = {
 }
 
 export type FlightStatisticDashboard = {
-    Active:  FlightStatistic;
-    Done: FlightStatistic;
-    Cancelled: FlightStatistic;
+    "ACTIVE":  FlightStatistic;
+    "DONE": FlightStatistic;
+    "CANCELLED": FlightStatistic;
+    "REVENUE": FlightStatistic;
 }
 
 export type FlightCounts = {

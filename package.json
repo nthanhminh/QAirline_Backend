@@ -31,7 +31,6 @@
     "@nestjs/platform-express": "^10.4.12",
     "@nestjs/serve-static": "^4.0.2",
     "@nestjs/swagger": "^7.4.2",
-    "@nestjs/throttler": "^3.0.0",
     "@nestjs/typeorm": "^10.0.2",
     "@types/crypto-js": "^4.2.2",
     "@types/nodemailer": "^6.4.17",
