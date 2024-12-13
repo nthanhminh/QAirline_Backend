@@ -2,7 +2,7 @@ import { Entity, Column, OneToMany, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '@modules/shared/base/base.entity';
 import { FlightPrice } from '@modules/priceForFlight/entity/priceForFlight.entity';
 import { Airport } from '@modules/airports/entity/airport.entity';
-import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
+// import { PriceForSeatType } from '@modules/priceSeatTypeForFlight/entity/priceForSeatType.entity';
 import { Plane } from '@modules/planes/entity/plane.entity';
 import { Booking } from '@modules/booking/entity/booking.entity';
 import { EFlightStatus } from '../enums/index.enum';
@@ -57,9 +57,6 @@ import { EFlightStatus } from '../enums/index.enum';
 
     @OneToMany(() => FlightPrice, (flightPrice) => flightPrice.flight)
     flightsPrice: FlightPrice[]
-
-    @OneToMany(() => PriceForSeatType, (priceForSeatType) => priceForSeatType.flight)
-    flightsPriceForSeatType: PriceForSeatType[]
 
     @OneToMany(() => Booking, (booking) => booking.flight)
     bookings: Booking[]

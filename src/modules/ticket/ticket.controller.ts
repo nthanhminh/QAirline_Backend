@@ -33,14 +33,6 @@ export class TicketController {
             data: await this.ticketService.getTicketFromFlightId(flightId, queryRunner),
         }
     }
-
-    @Get('/getNumberOfTicketsForFlight')
-    async getNumberTicketForFlight(@Query('flightId') flightId: string) : Promise<AppResponse<number>> {
-        const queryRunner = this.dataSource.createQueryRunner();
-        return {
-            data: await this.ticketService.getNumberOfTicketFromFlightId(flightId, queryRunner),
-        }
-    }
     
     @Patch('checkin/:id')
     async checking(@Param('id') id: string) : Promise<AppResponse<any>>{
