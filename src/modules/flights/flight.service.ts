@@ -191,7 +191,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             queryBuilder.addOrderBy("flight.departureTime", "ASC");
           }
         }
-        queryBuilder.skip(skip).limit(limit);
+        queryBuilder.skip(skip).take(limit);
         const [flights, cnt] = await queryBuilder.getManyAndCount();
         return {
           count: cnt,
@@ -247,7 +247,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         )
         .orderBy('flight.createdAt', 'DESC')
         .skip(skip)
-        .limit(limit)
+        .take(limit)
         .getManyAndCount(); 
       return {
         items: flights,
