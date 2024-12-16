@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { CreateNewSeatLayoutDto } from "./dto/createNewSeatLayout.dto";
 import { SeatService } from "./seats.service";
@@ -10,6 +10,7 @@ import { ERolesUser } from "@modules/users/enums/index.enum";
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
 import { Roles } from "src/decorators/roles.decorator";
+import { EPlaneType } from "@modules/planes/enums/index.enum";
 
 @Controller('seats')
 @ApiTags('seats')
@@ -52,6 +53,13 @@ export class SeatsController {
     ) : Promise<AppResponse<UpdateResult>> {
         return {
             data: await this.seatService.deleteSeatLayout(id),
+        }
+    }
+
+    @Get('getSeatDataForFlight') 
+    async getSeatDataForFlight(@Query('id') id: string) {
+        return {
+            data: await this.seatService.getSeatDataForFlight(id),
         }
     }
 }

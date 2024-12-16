@@ -3,7 +3,7 @@ import {
   Column,
   OneToMany,
 } from 'typeorm';
-import { ERolesUser } from '../enums/index.enum';
+import { ERolesUser, EStatusUser } from '../enums/index.enum';
 import { BaseEntity } from '@modules/shared/base/base.entity';
 import { Booking } from '@modules/booking/entity/booking.entity';
 import { Exclude } from 'class-transformer';
@@ -16,15 +16,24 @@ export class User extends BaseEntity {
   @Column({ type: 'enum', enum: ERolesUser, default: ERolesUser.USER})
   role: ERolesUser;
 
-  @Column('text')
+  @Column({
+    type: 'text',
+    unique: true,
+  })
   email: string;
 
   @Exclude()
   @Column({
     type: 'text',
-    // select: false,
   })
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: EStatusUser,
+    default: EStatusUser.INACTIVE
+  })
+  status: EStatusUser;
 
   @Column('date', { default: () => 'CURRENT_DATE' })
   birthOfDate: Date;

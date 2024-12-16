@@ -15,11 +15,6 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy) {
 	) {
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-			// jwtFromRequest: ExtractJwt.fromExtractors([
-			// 	(req: Request) => {
-			// 		return req?.cookies['accessToken']; // Extract JWT from cookies
-			// 	},
-			// ]),
 			ignoreExpiration: false,
 			secretOrKey: configService.get<String>('JWT_ACCESS_SECRET'),
 		});
@@ -27,7 +22,7 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy) {
 
 	async validate({ uuidAccessToken, sub }: TokenPayload) {
 		const user = await this.usersService.getUserWithRole(sub);
-
+		console.log('sub access token', sub);
 		if (!user) {
 			throw new UnauthorizedException('auths.Account not found');
 		}
@@ -36,9 +31,9 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException('auths.Account is deleted');
 		}
 
-		// if (user?.status === EStatusUser.INACTIVE) {
-		// 	throw new UnauthorizedException('auths.Account inactive');
-		// }
+		if (user?.status === EStatusUser.INACTIVE) {
+			throw new UnauthorizedException('auths.Account inactive');
+		}
 
 		// if (user.currentAccessToken !== uuidAccessToken && user.role === ERolesUser.USER)
 		// 	throw new UnauthorizedException(

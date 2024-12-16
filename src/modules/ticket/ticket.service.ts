@@ -161,7 +161,9 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             .select(['ticket.seatValue', 'ticket.seatClass'])
             .getMany();
     
-        return tickets.map(ticket => `${ticket.seatValue}-${ticket.seatClass}`);
+        return tickets
+                .filter(ticket => ticket.seatValue !== null)
+                .map(ticket => `${ticket.seatValue}-${ticket.seatClass}`);
     }
 
     async checkin(id: string) : Promise<string> {

@@ -9,15 +9,16 @@ import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh-token.strategy
 import { SharedModule } from '@modules/shared/shared.module';
 import { UserModule } from '@modules/users/user.module';
 import { VerifyModule } from '@modules/queue/verify.module';
+import { RedisCacheModule } from '@modules/redis/redis.module';
 
 @Module({
 	imports: [
 		UserModule,
 		PassportModule,
 		JwtModule.register({}),
-		// MailModule,
 		VerifyModule,
 		SharedModule,
+		RedisCacheModule
 	],
 	controllers: [AuthController],
 	providers: [

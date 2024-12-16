@@ -5,41 +5,28 @@ import {
 	ForbiddenException,
 	HttpStatus,
 	Injectable,
+	NotFoundException,
 	UnauthorizedException,
+	UnprocessableEntityException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { TokenPayload } from './interfaces/token.interface';
 import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import * as bcrypt from 'bcryptjs';
-import {
-	accessTokenPrivateKey,
-	refreshTokenPrivateKey,
-} from 'src/constraints/jwt.constraint';
-import { SignUpDto } from './dto/sign-up.dto';
-import { UpdatePasswordByCodeDto } from '@modules/auth/dto/update-password-by-code.dto';
-import { AppResponse, ResponseMessage } from '../../types/common.type';
-// import { MailService } from '@modules/mails/mail.service';
-import { UpdatePasswordDto } from '@modules/auth/dto/update-password.dto';
-import { SignInDto } from '@modules/auth/dto/sign-in.dto';
-import { UpdateInfoDto } from '@modules/auth/dto/update-info.dto';
-import { Observable } from 'rxjs';
+import { AppResponse } from '../../types/common.type';
 import { SharedService } from '@modules/shared/shared.service';
-import { Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import { RefreshTokenInterface } from '@modules/auth/interfaces/refresh-token.interface';
-import * as moment from 'moment';
-import { EEnvironmentLogin } from '@modules/auth/enums';
-import { VerifyCodeByEmailDto } from '@modules/auth/dto';
-import { ERolesUser, EStatusUser } from '@modules/users/enums/index.enum';
-import { escapeRegex, getTokenFromHeader } from 'src/helper/string.helper';
-import { EmailDto } from 'src/common/dto/email.dto';
 import { User } from '@modules/users/entity/user.entity';
 import { UsersService } from '../users/user.services';
 import { CreateNewUserDto } from '@modules/users/dto/createNewUser.dto';
 import { AuthDto, AuthResponseDto } from './dto/auth.dto';
 import { VerifyService } from '@modules/queue/verify.service';
+import { CacheService } from '@modules/redis/redis.service';
+import { SendCodeDto, VerifyCodeDto } from './dto/sendCode.dto';
+import { EStatusUser } from '@modules/users/enums/index.enum';
+import { UpdatePasswordByCodeDto, UpdatePasswordDto } from './dto/updatePasswordByCode.dto';
+import { TokenType } from './type/index.type';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -50,9 +37,9 @@ export class AuthService {
 		private configService: ConfigService,
 		private readonly usersService: UsersService,
 		private readonly jwtService: JwtService,
-		// private readonly mailService: MailService,
 		private readonly sharedService: SharedService,
-		private readonly verifyService: VerifyService
+		private readonly verifyService: VerifyService,
+		private readonly redisService: CacheService
 	) {
 		this.expTime = this.configService.get<number>(
 			'JWT_ACCESS_TOKEN_EXPIRATION_TIME',
@@ -77,10 +64,7 @@ export class AuthService {
 		  newUser.role,
 		);
 		await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-		await this.verifyService.addVerifyJob({
-		//   token: newUser.token,
-			code: 1234
-		});
+		await this.getCode({email: createUserDto.email})
 		return {
 			data: {
 				...tokens,
@@ -88,101 +72,171 @@ export class AuthService {
 			}
 		};
 	  }
-	
-	  async signIn(data: AuthDto) : Promise<AppResponse<AuthResponseDto>> {
+
+	async getCode({email}: SendCodeDto): Promise<string> {
+		const code = Math.floor(100000 + Math.random() * 900000).toString();
+		try {
+			const user = await this.usersService.findByEmail(email);
+			await this.redisService.setCache(`${user.id}:code`, code, 120);
+			await this.verifyService.addVerifyJob({
+				code: code,
+				email: email.toLowerCase(),
+			});
+			return 'auths.send code successfully'
+		} catch (error) {
+			throw new NotFoundException('auths.error happens');
+		}
+	}
+
+	async verifyCode({email, code}: VerifyCodeDto): Promise<User> {
+		const user = await this.usersService.findByEmail(email);
+		const codeInRedis = await this.redisService.getCache(`${user.id}:code`);
+		if(code.toString() !== codeInRedis.toString()) {
+			console.log(codeInRedis, code);
+			throw new UnauthorizedException(`auths.Invalid code`);
+		}
+		if(user.status === EStatusUser.ACTIVE) {
+			throw new UnprocessableEntityException(`auths.user has already verified`);
+		}
+		const updatedUser = await this.usersService.updateUser({
+			status: EStatusUser.ACTIVE
+		}, user)
+		return updatedUser;
+	}
+
+	async updatePasswordByCode(dto: UpdatePasswordByCodeDto) : Promise<User> {
+		const {email, password, code} = dto;
+		const user = await this.usersService.findByEmail(email);
+		const codeInRedis = await this.redisService.getCache(`${user.id}:code`);
+		if(code !== codeInRedis) {
+			throw new UnprocessableEntityException('auths.invalid code');
+		}
+		const hashedPassword = await this.hashData(password);
+		const updatedUser = await this.usersService.updateUser({
+			password: hashedPassword
+		}, user);
+		return updatedUser;
+	}
+
+	async updatePassword({password, oldPassword} : UpdatePasswordDto, user: User) : Promise<User> {
+		if(user.password === oldPassword) {
+			throw new BadRequestException('auths.old and new passwords must be different');
+		}
+		const hashedNewPassword = await this.hashData(password);
+		const updatedUser = await this.usersService.updateUser({
+			password: hashedNewPassword
+		}, user);
+		return updatedUser;
+	}
+
+	async signIn(data: AuthDto) : Promise<AppResponse<AuthResponseDto>> {
 		const user = await this.usersService.findByEmail(data.email);
 		if (!user) throw new BadRequestException('User does not exist');
 		const passwordMatches = await argon2.verify(user.password, data.password);
 		if (!passwordMatches)
-		  throw new BadRequestException('Password is incorrect');
+			throw new BadRequestException('Password is incorrect');
 		const tokens = await this.getTokens(user.id, user.name, user.role);
+		await this.redisService.setCache(`${user.id}:refreshToken`, tokens.refreshToken, 60);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
+		await this.updateAccessToken(user.id, tokens.accessToken);
 		return {
 			data: {
 				...tokens,
 				user
 			}
 		};
-	  }
-	
-	  async logout(userId: string) {
-		return this.usersService.update(userId, { refreshToken: null });
-	  }
-	
-	  generateEmailToken() {
+	}
+
+	async logout(user: User) : Promise<User> {
+		this.sharedService.addToBlacklist(user.currentAccessToken);
+		return this.usersService.update(user.id, { refreshToken: null });
+	}
+
+	generateEmailToken() {
 		const randomString = crypto
-		  .randomBytes(length)
-		  .toString('hex')
-		  .slice(0, length);
+			.randomBytes(length)
+			.toString('hex')
+			.slice(0, length);
 		return randomString;
-	  }
-	
-	  hashData(data: string) {
+	}
+
+	hashData(data: string) {
 		return argon2.hash(data);
-	  }
-	
-	//   async verifyEmail(token: string) {
-	// 	const user = await this.usersService.findByToken(token);
-	// 	return user != undefined;
-	//   }
-	
-	  async updateRefreshToken(userId: string, refreshToken: string) {
+	}
+
+
+	async updateRefreshToken(userId: string, refreshToken: string) {
 		const hashedRefreshToken = await this.hashData(refreshToken);
+		await this.redisService.setCacheWithSameTTL(`${userId}:refreshToken`, hashedRefreshToken);
 		await this.usersService.update(userId, {
-		  refreshToken: hashedRefreshToken,
+			refreshToken: hashedRefreshToken,
 		});
-	  }
-	
-	  async getTokens(userId: string, username: string, role: string) {
+	}
+
+	async updateAccessToken(userId: string, accessToken: string) {
+		await this.usersService.update(userId, {
+			currentAccessToken: accessToken,
+		});
+	}
+
+	async getTokens(userId: string, username: string, role: string) : Promise<TokenType> {
 		const [accessToken, refreshToken] = await Promise.all([
-		  this.jwtService.signAsync(
-			{
-			  sub: userId,
-			  username,
-			  role,
-			},
-			{
-			  secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-			  expiresIn: '7d',
-			},
-		  ),
-		  this.jwtService.signAsync(
-			{
-			  sub: userId,
-			  username,
-			  role,
-			},
-			{
-			  secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-			  expiresIn: '7d',
-			},
-		  ),
+			this.jwtService.signAsync(
+				{
+					sub: userId,
+					username,
+					role,
+				},
+				{
+					secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+					expiresIn: '7d',
+				},
+			),
+			this.jwtService.signAsync(
+				{
+					sub: userId,
+					username,
+					role,
+				},
+				{
+					secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+					expiresIn: '7d',
+				},
+			),
 		]);
 		return {
-		  accessToken,
-		  refreshToken,
+			accessToken,
+			refreshToken,
 		};
-	  }
-	
-	  async refreshTokens(userId: string, refreshToken: string) {
-		const user = await this.usersService.findUserById(userId);
+	}
+
+	async refreshTokens(user: User) {
 		if (!user || !user.refreshToken)
-		  throw new ForbiddenException('Access Denied');
-		const refreshTokenMatches = await argon2.verify(
-		  user.refreshToken,
-		  refreshToken,
-		);
-		if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+			throw new ForbiddenException('Access Denied');
+		const tokenInRedis = await this.redisService.getCache(`${user.id}:refreshToken`);
+		if(!tokenInRedis) {
+			console.log('Not found refresh token in redis')
+			throw new ForbiddenException('Access Denied');
+		}
+		const refreshTokenMatches = tokenInRedis === user.refreshToken;
+		if (!refreshTokenMatches) {
+			console.log('Not match refresh Token');
+			throw new ForbiddenException('Access Denied');
+		}
 		const tokens = await this.getTokens(user.id, user.name, user.role);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
-		return tokens;
-	  }
+		await this.updateRefreshToken(user.id, tokens.accessToken);
+		return {
+			accessToken: tokens.accessToken,
+		};
+	}
 
 	async getUserIfRefreshTokenMatched(userId: string, uuidRefreshToken: string) {
 		const user =  await this.usersService.findUserById(userId);
-		if(uuidRefreshToken === user.refreshToken) {
-			return true;
+		const check = await argon2.verify(user.refreshToken, uuidRefreshToken);
+		if(check) {
+			return user;
 		}
-		return false;
+		throw new ForbiddenException('Access Denied');
 	}
 }

@@ -23,9 +23,9 @@ export class JwtAccessTokenGuard extends AuthGuard('jwt') {
 		// );
 
 		// Check if the token is revoked
-		// if (token && (await this.tokenBlacklistService.isTokenBlacklisted(token))) {
-		// 	return false; // Token is blacklisted
-		// }
+		if (token && this.tokenBlacklistService.isTokenRevoked(token)) {
+			return false; 
+		}
 
 		const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
 			context.getHandler(),

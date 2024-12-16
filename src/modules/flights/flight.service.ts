@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { Flight } from "./entity/flight.entity";
 import { FlightRepository } from "@repositories/flight.repository";
@@ -18,6 +18,7 @@ import { ETimeZone } from "src/common/enum/index.enum";
 import { FindAllResponse } from "src/types/common.type";
 import { PaginationDto } from "src/common/dto/pagination.dto";
 import { EBookingStatus } from "@modules/booking/enums/index.enum";
+import { SeatService } from "@modules/seatsForPlaneType/seats.service";
 
 @Injectable()
 export class FlightService extends BaseServiceAbstract<Flight> {
@@ -30,7 +31,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
 
         private readonly airportService: AirportService,
 
-        private readonly planeService: PlaneService
+        @Inject(forwardRef(() => PlaneService))
+        private readonly planeService: PlaneService,
     ) {
         super(flightRepository)
     }

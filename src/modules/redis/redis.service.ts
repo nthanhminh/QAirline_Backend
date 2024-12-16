@@ -13,18 +13,24 @@ export class CacheService {
     await this.redisClient.setEx(key, ttl, JSON.stringify(value));  // Set key with value and TTL
   }
 
-  // Get a cache value by key
-  async getCache(key: string): Promise<any> {
-    const value = await this.redisClient.get(key);
-    return value ? JSON.parse(value) : null;  // Parse JSON value before returning
+  async setCacheWithSameTTL(key: string, value: any) {
+    const ttl = await this.redisClient.ttl(key);
+
+    await this.redisClient.set(key, JSON.stringify(value));
+    if (ttl > 0) {
+      await this.redisClient.expire(key, ttl);
+    }
   }
 
-  // Delete a cache entry by key
+  async getCache(key: string): Promise<any> {
+    const value = await this.redisClient.get(key);
+    return value ? JSON.parse(value) : null;  
+  }
+
   async deleteCache(key: string): Promise<void> {
     await this.redisClient.del(key);
   }
 
-  // Check if a key exists in the cache
   async hasCache(key: string): Promise<boolean> {
     const exists = await this.redisClient.exists(key);
     return exists > 0;

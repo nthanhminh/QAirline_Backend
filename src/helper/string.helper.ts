@@ -8,15 +8,16 @@ export const extractTokenFromRequest = (request): string => {
 	return null;
 };
 
-export function getTokenFromHeader(headers: {
-	[key: string]: string;
-}): string | undefined {
-	const authHeader = headers['authorization'];
-	if (authHeader && authHeader.startsWith('Bearer ')) {
-		return authHeader.split(' ')[1]; // Return the token part
-	}
-	return undefined; // Return undefined if no token is found
+export function getTokenFromHeader(headers: { [key: string]: string }): string | undefined {
+    const authHeader = headers['authorization'] || headers['Authorization']; 
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        return authHeader.split(' ')[1];  
+    }
+
+    return undefined;  
 }
+
 
 export const escapeRegex = (string) => {
 	return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');

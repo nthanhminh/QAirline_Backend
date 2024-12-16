@@ -1,6 +1,6 @@
 import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { Plane } from "./entity/plane.entity";
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { forwardRef, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { PlaneRepository } from "@repositories/plane.repository";
 import { UpdateResult } from "typeorm";
 import { CreateNewPlaneDto } from "./dto/createNewPlane.dto";
@@ -14,6 +14,7 @@ export class PlaneService extends BaseServiceAbstract<Plane> {
     constructor(
         @Inject('PLANE_REPOSITORY')
         private readonly planeRepository: PlaneRepository,
+        @Inject(forwardRef(() => SeatService))
         private readonly seatService: SeatService
     ) {
         super(planeRepository);
