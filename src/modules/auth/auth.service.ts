@@ -77,7 +77,7 @@ export class AuthService {
 		const code = Math.floor(100000 + Math.random() * 900000).toString();
 		try {
 			const user = await this.usersService.findByEmail(email);
-			await this.redisService.setCache(`${user.id}:code`, code, 120);
+			await this.redisService.setCache(`${user.id}:code`, code, 300);
 			await this.verifyService.addVerifyJob({
 				code: code,
 				email: email.toLowerCase(),
@@ -96,7 +96,7 @@ export class AuthService {
 			throw new UnauthorizedException(`auths.Invalid code`);
 		}
 		if(user.status === EStatusUser.ACTIVE) {
-			throw new UnprocessableEntityException(`auths.user has already verified`);
+			return user;
 		}
 		const updatedUser = await this.usersService.updateUser({
 			status: EStatusUser.ACTIVE
@@ -108,7 +108,7 @@ export class AuthService {
 		const {email, password, code} = dto;
 		const user = await this.usersService.findByEmail(email);
 		const codeInRedis = await this.redisService.getCache(`${user.id}:code`);
-		if(code !== codeInRedis) {
+		if(code.toString() !== codeInRedis.toString()) {
 			throw new UnprocessableEntityException('auths.invalid code');
 		}
 		const hashedPassword = await this.hashData(password);
@@ -189,7 +189,7 @@ export class AuthService {
 				},
 				{
 					secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-					expiresIn: '7d',
+					expiresIn: '1d',
 				},
 			),
 			this.jwtService.signAsync(

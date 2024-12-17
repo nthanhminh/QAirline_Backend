@@ -45,7 +45,7 @@ export class UsersController {
 	@ApiBearerAuth('token')
 	@UseGuards(JwtAccessTokenGuard)
     @Delete(':id')
-    async deleteUser(@Param() id: string): Promise<AppResponse<any>> {
+    async deleteUser(@Param('id') id: string): Promise<AppResponse<any>> {
         return {
             data: await this.userService.deleteUser(id),
         }

@@ -20,6 +20,5 @@ export class SignUpDto {
 		default: '12345678',
 	})
 	@IsNotEmpty()
-	// @IsStrongPassword()
 	password: string;
 }

@@ -52,44 +52,52 @@ export class NewsService extends BaseServiceAbstract<News> {
         })
     }
 
-    async updateNews(id: string, dto: UpdateNewsDto) : Promise<UpdateResult> {
+    async updateNews(id: string, dto: UpdateNewsDto): Promise<UpdateResult> {
         const news = await this.newsRepository.findOneById(id);
-        if(!news) {
+        if (!news) {
             throw new NotFoundException('news.news not found');
         }
-        let {airportIds, endTime, ...data} = dto;
+    
+        let { airportIds, endTime, ...data } = dto;
         let aiports: Airport[] = [];
         let endTimeDate;
-        if(endTime) {
+    
+        if (endTime) {
             endTimeDate = moment(endTime, 'DD-MM-YYYY HH:mm:ss').toDate();
         }
-        if(!endTime && data.type === ENewsType.DISCOUNT) {
+    
+        if (!endTime && data.type === ENewsType.DISCOUNT) {
             throw new UnprocessableEntityException('news.invalid news');
         }
+    
         if (airportIds) {
             const ids = Array.isArray(airportIds) ? airportIds : [airportIds];
             aiports = await Promise.all(
-              ids.map(async (id) => {
-                const airport = await this.airportService.findOne(id);
-                if (!airport) {
-                  throw new NotFoundException(`airports.airport not found`);
-                }
-                return airport;
-              }),
+                ids.map(async (id) => {
+                    const airport = await this.airportService.findOne(id);
+                    if (!airport) {
+                        throw new NotFoundException(`airports.airport not found`);
+                    }
+                    return airport;
+                }),
             );
         }
+    
         const updateData: any = {
             ...data,
+            endTime: endTimeDate || news.endTime, // Ensure not overriding if endTime is not provided
         };
     
-        if (endTime) {
-            updateData.endTime = endTimeDate;
-        }
-    
-        if (airportIds) {
+        if (airportIds && airportIds.length > 0) {
             updateData.airports = aiports;
         }
-        return await this.newsRepository.update(id, updateData);
+    
+        try {
+            const result = await this.newsRepository.update(id, updateData);
+            return result; // Returning the update result
+        } catch (error) {
+            throw new Error('Error updating news: ' + error.message);
+        }
     }
 
     async deleteNews(id) : Promise<UpdateResult> {

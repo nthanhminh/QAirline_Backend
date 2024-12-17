@@ -82,6 +82,8 @@ import { JwtAccessTokenGuard } from './guards/jwt-access-token.guard';
 	}
 
 	@Patch('updatePassword')
+	@ApiBearerAuth('token')
+	@UseGuards(JwtAccessTokenGuard)
 	async updatePassword(@Body() dto: UpdatePasswordDto, @CurrentUserDecorator() user: User) : Promise<AppResponse<User>> {
 		return {
 			data: await this.authService.updatePassword(dto, user)
