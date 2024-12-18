@@ -469,7 +469,10 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       const booking = await this.dataSource
         .getRepository(Booking)
         .createQueryBuilder('booking')
-        .leftJoinAndSelect('booking.flight', 'flight') 
+        .leftJoinAndSelect('booking.flight', 'flight')
+        .leftJoinAndSelect('flight.toAirport', 'flight_to_airport')
+        .leftJoinAndSelect('flight.fromAirport', 'flight_from_airport')
+        .leftJoinAndSelect('flight.plane', 'flight_plane')
         .leftJoinAndSelect('booking.tickets', 'tickets') 
         .leftJoinAndSelect('tickets.menus', 'menus') 
         .leftJoinAndSelect('tickets.services', 'services') 
