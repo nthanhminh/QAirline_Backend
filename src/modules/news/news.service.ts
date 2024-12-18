@@ -141,4 +141,8 @@ export class NewsService extends BaseServiceAbstract<News> {
             items,
         }));
     }
+
+    async getNewsById (id: string) : Promise<News> {
+        return await this.newsRepository.findOneById(id);
+    }
 }

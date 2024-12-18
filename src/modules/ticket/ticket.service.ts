@@ -210,6 +210,7 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             } else {
                 return ticket.seatValue
             }
+            await queryRunner.commitTransaction();
             throw new UnprocessableEntityException('tickets.The return has been made in error.')
         } catch (error) {
           await queryRunner.rollbackTransaction();

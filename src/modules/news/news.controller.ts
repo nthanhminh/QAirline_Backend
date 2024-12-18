@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { AppResponse, FindAllResponse } from "src/types/common.type";
 import { FilterNewsDto } from "./dto/getNews.dto";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
@@ -31,6 +31,16 @@ export class NewsController {
         return {
             data: await this.newsService.getNewsGroupByType(dto)
         }
+    }
+
+    @Get(':id') 
+    async getNewsById(
+        @Param('id', new ParseUUIDPipe()) id: string, 
+    ): Promise<AppResponse<News>> {
+        const news = await this.newsService.getNewsById(id);
+        return {
+            data: news,
+        };
     }
 
     @Roles(ERolesUser.ADMIN)
