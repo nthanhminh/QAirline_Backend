@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { BookingService } from "./booking.service";
 import { CreateNewBookingDto } from "./dto/createNewBooking.dto";
 import { AppResponse, ResponseMessage } from "src/types/common.type";
@@ -7,6 +7,9 @@ import { Booking } from "./entity/booking.entity";
 import { EditBookingDto } from "./dto/EditBooking.dto";
 import { UpdateResult } from "typeorm";
 import { CancelTicketDto } from "./dto/cancelTicket.dto";
+import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
+import { CurrentUserDecorator } from "src/decorators/current-user.decorator";
+import { User } from "@modules/users/entity/user.entity";
 
 @Controller('booking')
 @ApiTags('booking')
@@ -23,9 +26,11 @@ export class BookingController {
     }
 
     @Post()
-    async createNewBooking(@Body() dto: CreateNewBookingDto) : Promise<AppResponse<Booking>> {
+    @ApiBearerAuth('token')
+    @UseGuards(JwtAccessTokenGuard)
+    async createNewBooking(@Body() dto: CreateNewBookingDto, @CurrentUserDecorator() user: User) : Promise<AppResponse<Booking>> {
         return {
-            data: await this.bookingsService.createNewBooking(dto),
+            data: await this.bookingsService.createNewBooking(dto, user),
         }
     }
 

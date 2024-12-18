@@ -21,6 +21,7 @@ import * as moment from "moment";
 import { SeatClassPrice } from "@modules/flights/type/index.type";
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { News } from "@modules/news/entity/news.entity";
+import { User } from "@modules/users/entity/user.entity";
 
 @Injectable()
 export class BookingService extends BaseServiceAbstract<Booking> {
@@ -105,13 +106,14 @@ export class BookingService extends BaseServiceAbstract<Booking> {
     // }
 
 
-    async createNewBooking(dto: CreateNewBookingDto): Promise<Booking> {
+    async createNewBooking(dto: CreateNewBookingDto, user: User): Promise<Booking> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
       
         try {
-          const { customerId, flightId, tickets, ...data } = dto;
+          const { flightId, tickets, ...data } = dto;
+          const customerId = user.id;
       
           // Lấy thông tin khách hàng và chuyến bay
           const { customer, flight } = await this._getCustomerAndFlight(customerId, flightId);

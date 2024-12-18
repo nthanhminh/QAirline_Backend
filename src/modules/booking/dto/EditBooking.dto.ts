@@ -4,7 +4,7 @@ import { IsArray } from "class-validator";
 import { EditTicket } from "../type/index.type";
 
 export class EditBookingDto extends PartialType(
-    OmitType(CreateNewBookingDto, ['tickets', 'customerId'] as const) 
+    OmitType(CreateNewBookingDto, ['tickets'] as const) 
 ) {
     @ApiProperty({
         required: true,

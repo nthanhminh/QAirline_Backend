@@ -8,13 +8,6 @@ export class CreateNewBookingDto {
     // })
     // @IsNumber()
     // paymentAmount: number
-
-    @ApiProperty({
-        required: true,
-    })
-    @IsUUID()
-    customerId: string
-
     @ApiProperty({
         required: true,
     })

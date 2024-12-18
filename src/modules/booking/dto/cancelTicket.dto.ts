@@ -3,7 +3,7 @@ import { CreateNewBookingDto } from "./createNewBooking.dto";
 import { CancelTicket } from "../type/index.type";
 import { IsArray } from "class-validator";
 
-export class CancelTicketDto extends OmitType(CreateNewBookingDto, ['tickets', 'customerId', 'flightId'] as const)  {
+export class CancelTicketDto extends OmitType(CreateNewBookingDto, ['tickets', 'flightId'] as const)  {
     @ApiProperty({
         required: true,
         type: [CancelTicket]
