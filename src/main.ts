@@ -9,6 +9,7 @@ async function bootstrap() {
     origin: ['http://localhost:3000', 'https://qairline-admin-frontend.vercel.app', 'https://qairline-fe.vercel.app'], 
     methods: 'GET, POST, PATCH, DELETE', 
     allowedHeaders: 'Content-Type, Authorization',
+    credentials: true
   });
   // app.useGlobalInterceptors(new LoggingInterceptor());
   const configService = app.get(ConfigService);
