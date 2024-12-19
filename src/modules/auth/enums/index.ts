@@ -1,4 +1,4 @@
 export enum EEnvironmentLogin {
-	APP_STAFF = 'APP_STAFF',
+	APP_USER = 'APP_USER',
 	APP_ADMIN = 'APP_ADMIN',
 }

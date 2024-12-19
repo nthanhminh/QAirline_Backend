@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsNotEmpty, IsNumber } from "class-validator";
+import { EEnvironmentLogin } from "../enums";
 
 export class UpdatePasswordByCodeDto {
     @ApiProperty({
@@ -20,6 +21,12 @@ export class UpdatePasswordByCodeDto {
     })
     @IsNotEmpty()
     password: string;
+
+    @ApiProperty({
+        required: true,
+        enum: EEnvironmentLogin
+    })
+    environment: EEnvironmentLogin;
 }
 
 export class UpdatePasswordDto {

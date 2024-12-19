@@ -80,4 +80,25 @@ export function IsTimeFormat(validationOptions?: ValidationOptions) {
       });
     };
   }
+
+  export function IsStrongPassword(validationOptions?: ValidationOptions) {
+    return function (object: Object, propertyName: string) {
+        registerDecorator({
+            name: 'isStrongPassword',
+            target: object.constructor,
+            propertyName: propertyName,
+            options: validationOptions,
+            validator: {
+                validate(value: any, args: ValidationArguments) {
+                    // Kiểm tra mật khẩu
+                    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,14}$/;
+                    return typeof value === 'string' && strongPasswordRegex.test(value) && value.trim() !== '';
+                },
+                defaultMessage(args: ValidationArguments) {
+                  return 'Password must be 6-14 characters long, contain at least one uppercase letter, one lowercase letter, one digit, one special character, and must not consist entirely of whitespace.';
+                }
+            },
+        });
+    };
+}
   

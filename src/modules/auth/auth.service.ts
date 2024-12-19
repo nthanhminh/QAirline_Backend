@@ -23,10 +23,11 @@ import { AuthDto, AuthResponseDto } from './dto/auth.dto';
 import { VerifyService } from '@modules/queue/verify.service';
 import { CacheService } from '@modules/redis/redis.service';
 import { SendCodeDto, VerifyCodeDto } from './dto/sendCode.dto';
-import { EStatusUser } from '@modules/users/enums/index.enum';
+import { ERolesUser, EStatusUser } from '@modules/users/enums/index.enum';
 import { UpdatePasswordByCodeDto, UpdatePasswordDto } from './dto/updatePasswordByCode.dto';
 import { TokenType } from './type/index.type';
 import { UpdateResult } from 'typeorm';
+import { EEnvironmentLogin } from './enums';
 
 @Injectable()
 export class AuthService {
@@ -105,8 +106,21 @@ export class AuthService {
 	}
 
 	async updatePasswordByCode(dto: UpdatePasswordByCodeDto) : Promise<User> {
-		const {email, password, code} = dto;
+		const {email, password, code, environment} = dto;
 		const user = await this.usersService.findByEmail(email);
+		if (!user) throw new NotFoundException('users.user not found');
+		switch (environment) {
+			case EEnvironmentLogin.APP_ADMIN:
+				if(user.role !== ERolesUser.ADMIN) {
+					throw new ForbiddenException();
+				}
+				break;
+			case EEnvironmentLogin.APP_USER:
+				if(user.role !== ERolesUser.USER) {
+					throw new ForbiddenException();
+				}
+				break;
+		}
 		const codeInRedis = await this.redisService.getCache(`${user.id}:code`);
 		if(code.toString() !== codeInRedis.toString()) {
 			throw new UnprocessableEntityException('auths.invalid code');
@@ -130,8 +144,21 @@ export class AuthService {
 	}
 
 	async signIn(data: AuthDto) : Promise<AppResponse<AuthResponseDto>> {
+		const {environment} = data;
 		const user = await this.usersService.findByEmail(data.email);
 		if (!user) throw new BadRequestException('User does not exist');
+		switch (environment) {
+			case EEnvironmentLogin.APP_ADMIN:
+				if(user.role !== ERolesUser.ADMIN) {
+					throw new ForbiddenException();
+				}
+				break;
+			case EEnvironmentLogin.APP_USER:
+				if(user.role !== ERolesUser.USER) {
+					throw new ForbiddenException();
+				}
+				break;
+		}
 		const passwordMatches = await argon2.verify(user.password, data.password);
 		if (!passwordMatches)
 			throw new BadRequestException('Password is incorrect');
