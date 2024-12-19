@@ -72,7 +72,6 @@ export class StatisticService {
             .where('DATE_TRUNC(\'month\', flight.departureTime) = DATE_TRUNC(\'month\', CURRENT_DATE - INTERVAL \'1 month\')')
             .getRawOne()
         ])
-        console.log(thisMonthData, lastMonthData);
         const totalPriceThisMonth = thisMonthData["totalPrice"] ?? 0;
         const totalPriceLastMonth = lastMonthData["totalPrice"] ?? 0;
         return [totalPriceThisMonth, totalPriceLastMonth];

@@ -72,8 +72,6 @@ export class MenuService extends BaseServiceAbstract<Menu> {
             .limit(limit);
     
         const groupedResults = await query.getRawMany();
-
-        console.log(groupedResults);
     
         return groupedResults.map(result => ({
             type: result.menu_type,

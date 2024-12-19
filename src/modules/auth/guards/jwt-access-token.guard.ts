@@ -18,15 +18,12 @@ export class JwtAccessTokenGuard extends AuthGuard('jwt') {
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest();
 		const token = getTokenFromHeader(request.headers); // Get the token from the header
-		console.log(token);
 		// const isBlackList = await this.tokenBlacklistService.isTokenBlacklisted(
 		// 	token,
 		// );
 
 		// Check if the token is revoked
 		if (token && this.tokenBlacklistService.isTokenRevoked(token)) {
-			console.log(token);
-			console.log('revoked token');
 			return false; 
 		}
 

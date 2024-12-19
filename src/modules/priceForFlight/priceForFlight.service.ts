@@ -101,8 +101,6 @@ export class PriceFlightService extends BaseServiceAbstract<FlightPrice> {
         }
         const updates = pricesData.map(async(priceData) => {
             const {id, price, seatClass} = priceData;
-            console.log("Hello guys");
-            console.log(id, price, seatClass);
             const seatClassInfo = await this.seatClassInfoService.getSeatClassInfoByClass(seatClass);
             if (!seatClassInfo) {
                 throw new NotFoundException('seats.seat class not found');

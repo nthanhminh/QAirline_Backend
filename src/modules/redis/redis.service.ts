@@ -38,7 +38,6 @@ export class CacheService {
 
   async getAllKey() {
     const keys = await this.redisClient.keys('seat*');
-    console.log(keys);
   }
 
   async getAllSeatInRedis() : Promise<Map<string, string>> {
@@ -48,7 +47,6 @@ export class CacheService {
         const value = await this.redisClient.get(key);
         res.set(key, JSON.parse(value));
     }
-    console.log(keys, res);
     return res;
   }
 }

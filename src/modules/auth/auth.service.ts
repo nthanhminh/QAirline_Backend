@@ -93,7 +93,6 @@ export class AuthService {
 		const user = await this.usersService.findByEmail(email);
 		const codeInRedis = await this.redisService.getCache(`${user.id}:code`);
 		if(code.toString() !== codeInRedis.toString()) {
-			console.log(codeInRedis, code);
 			throw new UnauthorizedException(`auths.Invalid code`);
 		}
 		if(user.status === EStatusUser.ACTIVE) {
@@ -242,12 +241,10 @@ export class AuthService {
 			throw new ForbiddenException('Access Denied');
 		const tokenInRedis = await this.redisService.getCache(`${user.id}:refreshToken`);
 		if(!tokenInRedis) {
-			console.log('Not found refresh token in redis')
 			throw new ForbiddenException('Access Denied');
 		}
 		const refreshTokenMatches = tokenInRedis === user.refreshToken;
 		if (!refreshTokenMatches) {
-			console.log('Not match refresh Token');
 			throw new ForbiddenException('Access Denied');
 		}
 		const tokens = await this.getTokens(user.id, user.name, user.role);

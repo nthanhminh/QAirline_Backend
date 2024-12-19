@@ -7,7 +7,6 @@ export const databaseProviders = [
   {
     provide: 'DATA_SOURCE',
     useFactory: async () => {
-      console.log(process.env.Databse);
       const dataSource = new DataSource({
         type: 'postgres', // Change to 'postgres' for PostgreSQL
         useUTC: true,

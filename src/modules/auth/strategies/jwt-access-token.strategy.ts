@@ -22,7 +22,6 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy) {
 
 	async validate({ uuidAccessToken, sub }: TokenPayload) {
 		const user = await this.usersService.getUserWithRole(sub);
-		console.log('sub access token', sub);
 		if (!user) {
 			throw new UnauthorizedException('auths.Account not found');
 		}

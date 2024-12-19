@@ -37,75 +37,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
     ) {
         super(bookingRepository);
     }
-
-    // async createNewBooking(dto: CreateNewBookingDto): Promise<Booking> {
-    //     const { customerId, flightId, tickets, ...data } = dto;
-    //     const {customer, flight } = await this._getCustomerAndFlight(customerId, flightId);
-    //     const convertedTickets = await this._handleTickets(tickets,flight.id, flight.plane.seatLayoutId.seatLayoutForPlaneType);
-    //     const booking =  await this.bookingRepository.create({
-    //         ...data,
-    //         flight: flight,
-    //         customer: customer
-    //     })
-    //     await this.addIntoTicketDetail(convertedTickets, booking.id);
-    //     return booking;
-    // }
-
-    // async _handleTickets(ticket: TicketBookingItem[], flightId: string, seatLayoutForPlaneType: SeatLayoutItem[]) {
-    //     let convertedTickets = [].concat(ticket);
-    //     const listSeatBooked = await this.tickeService.getTicketFromFlightId(flightId);
-    //     convertedTickets.map((ticket : TicketBookingItem) => {
-    //         const {seatValue, ...data} = ticket
-    //         if(ticket.seatValue) {
-    //             return ticket
-    //         }
-    //         else {
-    //             for(let i = 0; i < seatLayoutForPlaneType.length; i++) {
-    //                 if(seatLayoutForPlaneType[i].seatClass === ticket.seatClass && !listSeatBooked.includes(`${seatLayoutForPlaneType[i].name}-${seatLayoutForPlaneType[i].seatClass}`)) {
-    //                     return {
-    //                         ...data,
-    //                         seatValue: seatLayoutForPlaneType[i].name
-    //                     }
-    //                 }
-    //             }
-    //             return ticket;
-    //         }
-    //     })
-    //     convertedTickets.forEach((ticket : TicketBookingItem) => {
-    //         if(listSeatBooked.includes(`${ticket.seatValue}-${ticket.seatClass}`)) {
-    //             throw new Error(`${ticket.seatValue} is already booked`);
-    //         }
-    //     })
-    //     return convertedTickets;
-    // }
-
-    // async addIntoTicketDetail(ticket: TicketBookingItem[], bookingId: string) {
-    //     ticket.forEach(async (ticket: TicketBookingItem) => {
-    //         const test = await this.tickeService.createNewTicket({
-    //             seatValue: ticket.seatValue,
-    //             seatClass: ticket.seatClass,
-    //             bookingId: bookingId,
-    //             menuIds: ticket.menuIds,
-    //             serviceIds: ticket.servicesIds
-    //         })
-    //         console.log(test);
-    //     })
-    // }
-
-    // async _getCustomerAndFlight(customerId: string, flightId: string) {
-    //     const customer = await this.userService.findUserById(customerId);
-    //     if(!customer) {
-    //         throw new NotFoundException('users.user not found');
-    //     }
-    //     const flight = await this.flightService.getFlightWithDetailInfo(flightId);
-    //     console.log(flight);
-    //     if(!flight) {
-    //         throw new NotFoundException('flights.flight not found');
-    //     }
-    //     return {customer, flight}
-    // }
-
-
     async createNewBooking(dto: CreateNewBookingDto, user: User): Promise<Booking> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -120,13 +51,10 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       
           const seatClassPrices: SeatClassPrice[] = this.flightService.getSeatClassPriceForFlightUsingFlightsPrice(flight.flightsPrice);
 
-          // console.log(flight);
-
           // Xử lý ghế ngồi
           const convertedTickets = await this._handleTickets(
             tickets,
             flight.id,
-            // flight.plane.seatLayoutId.seatLayoutForPlaneType,
             queryRunner
           );
       
@@ -136,33 +64,26 @@ export class BookingService extends BaseServiceAbstract<Booking> {
             flight: flight,
             customer: customer,
           });
-      
-          // Lưu booking vào database
+
           const bookingSaved = await queryRunner.manager.save(booking);
       
-          // Thêm thông tin chi tiết vé
           await this.addIntoTicketDetail(queryRunner, convertedTickets, bookingSaved, seatClassPrices, flight.toAirport.discounts);
-      
-          // Commit transaction
+
           await queryRunner.commitTransaction();
       
           const updatedBooking = await this.bookingRepository.findOneById(bookingSaved.id, {
             relations: ['tickets'],
           });
           if (updatedBooking?.customer) {
-            console.log('test');
             delete updatedBooking.customer.password;
             delete updatedBooking.customer.currentAccessToken;
             delete updatedBooking.customer.refreshToken;
           }
-          console.log(updatedBooking);
           return updatedBooking;
         } catch (error) {
-          // Rollback transaction nếu có lỗi
           await queryRunner.rollbackTransaction();
           throw error;
         } finally {
-          // Đóng QueryRunner
           await queryRunner.release();
         }
       }
@@ -249,9 +170,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       ): Promise<void> {
         for (const ticket of tickets) {
           let basePrice = this._getSeatClassPriceForTicket(seatClassPrices, ticket.seatClass);
-          console.log('basePriceBooking:', basePrice);
           basePrice = this._handleBasePriceDiscount(discounts, basePrice);
-          console.log('basePriceBooking after:', basePrice);
           const newTicket = await this.tickeService.createNewTicket({
             customerEmail: ticket.customerEmail,
             customerName: ticket.customerName,
@@ -268,7 +187,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       
       _handleBasePriceDiscount(discounts: News[], basePrice: number): number {
         let basePriceHandled = basePrice;
-        console.log(discounts)
         for(const discount of discounts) {
           if(!discount.endTime) {
             continue;

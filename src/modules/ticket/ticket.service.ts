@@ -84,9 +84,6 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         }
 
         const ticketRepository = queryRunner.manager.getRepository(Ticket);
-
-        console.log('price', price);
-        console.log(basePrice);
         
         const newTicket = await ticketRepository.create({
             ...data,
@@ -184,7 +181,6 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             const listSeatBooked = await this.getTicketFromFlightId(flight.id, queryRunner);
             const seatLayoutForPlaneType = flight.plane.seatLayoutId.seatLayoutForPlaneType;
             const seatTmpMap = await this.cacheService.getAllSeatInRedis();
-            console.log(seatTmpMap);
             const listSeatRedis = []
             for (const [key, value] of seatTmpMap.entries()) {
                 listSeatRedis.push(value);

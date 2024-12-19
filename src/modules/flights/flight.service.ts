@@ -148,7 +148,6 @@ export class FlightService extends BaseServiceAbstract<Flight> {
         if (departureTime) {
           const startOfDay = moment(departureTime, "DD-MM-YYYY").startOf('day').toDate();
           const endOfDay = moment(departureTime, "DD-MM-YYYY").endOf('day').toDate();
-          console.log(startOfDay, endOfDay);
           queryBuilder.andWhere("flight.departureTime BETWEEN :startOfDay AND :endOfDay", {
             startOfDay,
             endOfDay,
