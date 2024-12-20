@@ -8,5 +8,6 @@ export enum ESeatClass {
 export enum ESeatType {
     WINDOW_SEAT = "WINDOW_SEAT",
     AISLE_SEAT = "AISLE_SEAT",
-    EXIT_ROW_SEAT = "EXIT_ROW_SEAT"
+    EXIT_ROW_SEAT = "EXIT_ROW_SEAT",
+    MIDDLE_SEAT = "MIDDLE_SEAT"
 }

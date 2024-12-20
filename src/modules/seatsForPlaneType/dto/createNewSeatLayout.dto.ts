@@ -40,7 +40,7 @@ export class CreateNewSeatLayoutDto {
         type: [SeatLayoutItem],
     })
     @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => SeatLayoutItem)
+    // @ValidateNested({ each: true })
+    // @Type(() => SeatLayoutItem)
     seatLayoutForPlaneType: SeatLayoutItem[]
 }

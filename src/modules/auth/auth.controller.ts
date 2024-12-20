@@ -22,9 +22,8 @@ import { CreateNewUserDto } from '@modules/users/dto/createNewUser.dto';
 import { JwtRefreshTokenGuard } from './guards/jwt-refresh-token.guard';
 import { VerifyService } from '@modules/queue/verify.service';
 import { SendCodeDto, VerifyCodeDto } from './dto/sendCode.dto';
-import { AppResponse, AppResponseMessage, ResponseMessage } from 'src/types/common.type';
+import { AppResponse, ResponseMessage } from 'src/types/common.type';
 import { UpdatePasswordByCodeDto, UpdatePasswordDto } from './dto/updatePasswordByCode.dto';
-import { TokenType } from './type/index.type';
 import { JwtAccessTokenGuard } from './guards/jwt-access-token.guard';
   
   @ApiTags('auth')

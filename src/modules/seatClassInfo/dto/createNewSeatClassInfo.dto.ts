@@ -1,6 +1,6 @@
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsJSON } from "class-validator";
+import { IsEnum, IsJSON, IsObject } from "class-validator";
 
 export class CreateNewSeatClassInfoDto {
     @ApiProperty({
@@ -12,6 +12,6 @@ export class CreateNewSeatClassInfoDto {
     @ApiProperty({
         required: true
     })
-    @IsJSON()
-    seatClassInfo: JSON
+    @IsObject()
+    seatClassInfo: Object
 }

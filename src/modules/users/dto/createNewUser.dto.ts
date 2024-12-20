@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsNumber, IsStrongPassword, Matches, Min } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsStrongPassword, Matches, Min } from "class-validator";
+import { ERolesUser } from "../enums/index.enum";
 
 export class CreateNewUserDto {
     @ApiProperty({
@@ -24,7 +25,7 @@ export class CreateNewUserDto {
         required: true
     })
     @IsNotEmpty()
-    @IsStrongPassword()
+    // @IsStrongPassword()
     password: string;
 
     @ApiProperty({
@@ -43,4 +44,10 @@ export class CreateNewUserDto {
         { message: 'Date of birth must be in the format dd/mm/yyyy.' }
     )
     birthOfDate: string;
+
+    @ApiProperty({
+        required: true
+    })
+    @IsEnum(ERolesUser)
+    role: ERolesUser
 }

@@ -10,14 +10,43 @@ export function IsDateTimeDDMMYYYYHHMMSS(validationOptions?: ValidationOptions) 
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
+          console.log('start validate');
           // Kiểm tra định dạng dd-MM-yyyy HH:mm:ss
-          const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} \d{2}:\d{2}:\d{2}$/;
-          return typeof value === 'string' && regex.test(value);
+          const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} ([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
+
+          if (typeof value !== 'string' || !regex.test(value)) {
+            return false; // Không đúng định dạng
+          }
+
+          // Tách ngày, tháng, năm, giờ, phút, giây từ chuỗi
+          const [datePart, timePart] = value.split(' ');
+          const [day, month, year] = datePart.split('-').map(Number);
+          const [hours, minutes, seconds] = timePart.split(':').map(Number);
+
+          // Tạo đối tượng Date
+          const inputDate = new Date(year, month - 1, day, hours, minutes, seconds);
+
+          // Kiểm tra nếu ngày không hợp lệ
+          if (
+            inputDate.getFullYear() !== year ||
+            inputDate.getMonth() !== month - 1 ||
+            inputDate.getDate() !== day ||
+            inputDate.getHours() !== hours ||
+            inputDate.getMinutes() !== minutes ||
+            inputDate.getSeconds() !== seconds
+          ) {
+            return false;
+          }
+
+          // So sánh với thời gian hiện tại
+          console.log(inputDate, new Date());
+          const now = new Date();
+          return inputDate > now; // Phải sau thời gian hiện tại
         },
         defaultMessage(args: ValidationArguments) {
-          return `${args.property} must be in the format dd-MM-yyyy HH:mm:ss`;
-        }
-      }
+          return `${args.property} must be in the format dd-MM-yyyy HH:mm:ss and must be after the current time`;
+        },
+      },
     });
   };
 }
@@ -33,24 +62,29 @@ export function IsDateTimeDDMMYYYY(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          // Regex for dd-MM-yyyy
           const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
 
           if (typeof value !== 'string' || !regex.test(value)) {
             return false;
           }
 
-          // Validate if the date is valid (e.g., not 31-02-2024)
           const [day, month, year] = value.split('-').map(Number);
-          const date = new Date(year, month - 1, day); // Month is zero-based in JS Dates
-          return (
-            date.getFullYear() === year &&
-            date.getMonth() === month - 1 &&
-            date.getDate() === day
-          );
+          const inputDate = new Date(year, month - 1, day); 
+
+          if (
+            inputDate.getFullYear() !== year ||
+            inputDate.getMonth() !== month - 1 ||
+            inputDate.getDate() !== day
+          ) {
+            return false;
+          }
+
+          const now = new Date();
+          now.setHours(0, 0, 0, 0); 
+          return inputDate > now; 
         },
         defaultMessage(args: ValidationArguments) {
-          return `${args.property} must be in the format dd-MM-yyyy`;
+          return `${args.property} must be in the format dd-MM-yyyy and after the current date`;
         },
       },
     });

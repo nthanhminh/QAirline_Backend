@@ -7,7 +7,7 @@ import { UpdateFlightDto } from "./dto/updateNewFight.dto";
 import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
 import { FilterFlightDto } from "./dto/findFlight.dto";
 import { _getSkipLimit } from "src/helper/pagination.helper.dto";
-import { ESortFlightByDeparture, ESortFlightByPrice } from "./enums/index.enum";
+import { EFlightStatus, ESortFlightByDeparture, ESortFlightByPrice } from "./enums/index.enum";
 import { convertNowToTimezone, durationToSeconds } from "src/helper/time.helper";
 import { AirportService } from "@modules/airports/airport.service";
 import { PlaneService } from "@modules/planes/planes.service";
@@ -68,12 +68,22 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           throw new NotFoundException('Flight not found');
       }
   
-      const { departureTime, duration, fromAirportId, toAirportId, planeId, ...data } = dto;
+      let { departureTime, duration, fromAirportId, toAirportId, planeId, ...data } = dto;
       const plane = planeId ? await this.planeService.findOneByCondition({id: planeId}) : null;
       if(planeId && !plane) {
           throw new NotFoundException('planes.plane not found');
       }
-      const convertedDepartureTime = departureTime ? new Date(departureTime) : undefined;
+      const currentDepartureTime = moment(flight.departureTime);
+      const convertedDepartureTime = moment(departureTime, 'DD-MM-YYYY HH:mm:ss').toDate();
+      console.log(currentDepartureTime, convertedDepartureTime, moment(), (currentDepartureTime.isBefore(convertedDepartureTime)));
+      if(currentDepartureTime.isBefore(convertedDepartureTime)) {
+        const now = moment();
+        const diff = now.diff(currentDepartureTime, 'hours');
+        console.log(diff);
+        if(diff >= -3) {
+          data["status"] = EFlightStatus.DELAYED;
+        }
+      }
       const convertedDuration = duration ? durationToSeconds(duration) : undefined;
   
       const [fromAirport, toAirport] = await Promise.all([
@@ -201,7 +211,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     }
 
     async getFlightWithDetailInfo(flightId: string) : Promise<Flight> {
-        const flight = this.dataSource
+        console.log("flightId",flightId);
+        const flight = await this.dataSource
           .getRepository(Flight) 
           .createQueryBuilder("flight")
           .leftJoinAndSelect("flight.flightsPrice", "flights_price")
@@ -221,7 +232,8 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           .where("flight.id = :flightId", { flightId })
           .getOne(); 
         if(!flight) {
-          throw new NotFoundException("flights.flight not found");
+          return null;
+          // throw new NotFoundException("flights.flight not found");
         }
         return flight;
     }
