@@ -2,7 +2,6 @@ import { FindAirportDto } from "@modules/airports/dto/findAirport.dto";
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { AppResponse, FindAllResponse } from "src/types/common.type";
-import { PlaneService } from "./planes.service";
 import { CreateNewPlaneDto } from "./dto/createNewPlane.dto";
 import { Plane } from "./entity/plane.entity";
 import { UpdatePlaneDto } from "./dto/updatePlane.dto";
@@ -11,6 +10,7 @@ import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard
 import { RolesGuard } from "@modules/auth/guards/roles.guard";
 import { ERolesUser } from "@modules/users/enums/index.enum";
 import { Roles } from "src/decorators/roles.decorator";
+import { PlaneService } from "./planes.service";
 
 @Controller('planes')
 @ApiTags('planes')
