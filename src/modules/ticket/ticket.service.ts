@@ -7,7 +7,7 @@ import { MenuService } from "@modules/menu/food.service";
 import { BookingService } from "@modules/booking/booking.service";
 import { ServiceHandler } from "@modules/services/services.handler";
 import { StatusChangeDto } from "./dto/statusChange.dto";
-import { DataSource, QueryRunner, UpdateResult } from "typeorm";
+import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
 import { FindAllResponse } from "src/types/common.type";
 import { Booking } from "@modules/booking/entity/booking.entity";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
@@ -15,6 +15,7 @@ import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { EBookingStatus } from "@modules/booking/enums/index.enum";
 import { FlightService } from "@modules/flights/flight.service";
 import { CacheService } from "@modules/redis/redis.service";
+import { NumberOfTicketsBooked } from "./type/index.type";
 
 @Injectable()
 export class TicketService extends BaseServiceAbstract<Ticket> {
@@ -161,6 +162,33 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
         return tickets
                 .filter(ticket => ticket.seatValue !== null)
                 .map(ticket => `${ticket.seatValue}-${ticket.seatClass}`);
+    }
+
+    async getNumberOfFromFlightId(flightId: string, queryRunner: QueryRunner): Promise<NumberOfTicketsBooked> {
+        const tickets = await queryRunner.manager
+            .createQueryBuilder('ticket', 'ticket')
+            .leftJoinAndSelect('ticket.booking', 'booking')
+            .leftJoinAndSelect('booking.flight', 'flight')
+            .where('flight.id = :flightId', { flightId })
+            .select(['ticket.seatValue', 'ticket.seatClass'])
+            .getMany();
+    
+        const seatClassCount = tickets.reduce((acc, ticket) => {
+            const seatClass = ticket.seatClass;
+            if (acc[seatClass]) {
+                acc[seatClass] += 1;
+            } else {
+                acc[seatClass] = 1;
+            }
+            return acc;
+        }, {});
+        
+        return {
+            numberOfTicketsBasicEconomy: seatClassCount[ESeatClass.BASIC_ECONOMY] || 0,
+            numberOfTicketsEconomy: seatClassCount[ESeatClass.ECONOMY] || 0,
+            numberOfTicketsPremiumEconomy: seatClassCount[ESeatClass.PREMIUM_ECONOMY] || 0,
+            numberOfTicketsBusiness: seatClassCount[ESeatClass.BUSINESS] || 0,
+        };
     }
 
     async checkin(id: string) : Promise<string> {

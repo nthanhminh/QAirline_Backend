@@ -61,12 +61,9 @@ export class SeatService extends BaseServiceAbstract<Seat> {
             bookedSeatType[seatClass].push(seatValue);
         }
         const seatLayoutItems = seat.seatLayoutForPlaneType;
-        const uniqueValue = new Set();
     
         const groupedBySeatType = seatLayoutItems.reduce((acc, seat) => {
-            const seatValue = seat.name[0];  
-            uniqueValue.add(seatValue);
-    
+     
             if (!acc[seat.seatClass]) {
                 acc[seat.seatClass] = [];
             }
@@ -77,13 +74,14 @@ export class SeatService extends BaseServiceAbstract<Seat> {
     
         const data = Object.keys(groupedBySeatType).map((seatType) => {
             const seats:SeatLayoutItem[]  = groupedBySeatType[seatType];
+            const mp = new Map<string, number>();
             const windowSeats = [];
             const exitRowSeats = [];
             const aisleRowSeats = [];
-            const uniqueValue = new Set();
             for (const seat of seats) {
                 const startedValue = seat.name.slice(0,1);
-                uniqueValue.add(startedValue);
+                const currentValueOfMap = mp.get(startedValue) || 0;
+                mp.set(startedValue, currentValueOfMap + 1);
                 switch (seat.seatType) {
                     case ESeatType.AISLE_SEAT:
                         aisleRowSeats.push(seat.name);
@@ -103,7 +101,7 @@ export class SeatService extends BaseServiceAbstract<Seat> {
                 windowSeats: windowSeats,
                 aisleRowSeats: aisleRowSeats,
                 exitRowSeats: exitRowSeats,
-                rows: uniqueValue.size,
+                rows: mp.get("A"),
                 occupiedRowSeats: bookedSeatType[seatType],
         }});
     

@@ -52,6 +52,13 @@ export class FlightController {
         }
     }
 
+    // @Get('test')
+    // async test() {
+    //     return {
+    //         data: await this.flightService.ge
+    //     }
+    // }
+
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto

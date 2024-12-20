@@ -308,6 +308,11 @@ export class FlightService extends BaseServiceAbstract<Flight> {
               'flight_plane_seatLayout.numberOfBasicSeats AS numberOfBasicSeats',
             ])
             .getRawOne();
-      return flight;
+      return {
+        numberOfBasicSeats: flight["numberofbasicseats"],
+        numberOfBusinessSeats: flight["numberofbusinessseats"],
+        numberOfEconomySeats: flight["numberofbusinessseats"],
+        numberOfPreminumEconomySeats: flight["numberofpreminumeconomyseats"]
+      };
     }    
 }

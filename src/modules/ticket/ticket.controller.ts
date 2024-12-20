@@ -9,6 +9,7 @@ import { StatusChangeDto } from "./dto/statusChange.dto";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 import { CheckinDto } from "./dto/checkin.dto";
 import { ETicketStatus } from "./enums/index.enum";
+import { NumberOfTicketsBooked } from "./type/index.type";
 
 @Controller('tickets')
 @ApiTags('tickets')
@@ -23,6 +24,14 @@ export class TicketController {
     async getTicketInfo(@Query('id') id: string,) : Promise<AppResponse<Ticket>> {
         return {
             data: await this.ticketService.getTicketInfo(id)
+        }
+    }
+
+    @Get('/getNumberOfTicketsFromFlightId')
+    async getNumberOfTicketsFromFlightId(@Query('id') id: string) : Promise<AppResponse<NumberOfTicketsBooked>> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        return {
+            data: await this.ticketService.getNumberOfFromFlightId(id,queryRunner)
         }
     }
 

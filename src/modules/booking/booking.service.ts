@@ -101,6 +101,17 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           numberOfEconomySeats,
           numberOfBasicSeats
         } = await this.flightService.getNumberOfSeatInfoForFlight(flightId, queryRunner);
+        const {
+          numberOfTicketsBasicEconomy,
+          numberOfTicketsEconomy,
+          numberOfTicketsPremiumEconomy,
+          numberOfTicketsBusiness
+        } = await this.tickeService.getNumberOfFromFlightId(flightId,queryRunner);
+        // Caculate the number of tickets available
+        numberOfBusinessSeats -= numberOfTicketsBusiness;
+        numberOfPreminumEconomySeats -= numberOfTicketsPremiumEconomy;
+        numberOfEconomySeats -=numberOfTicketsEconomy;
+        numberOfBasicSeats -= numberOfTicketsBasicEconomy;
         const convertedTickets = tickets.map((ticket: TicketBookingItem) => {
           switch (ticket.seatClass) {
             case ESeatClass.BUSINESS:
