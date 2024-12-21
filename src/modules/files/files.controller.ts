@@ -28,9 +28,9 @@ import { trimfilenametobytes } from 'src/helper/filter-file-upload.helper';
 
 @Controller('files')
 @ApiTags('files')
-@ApiBearerAuth('token')
-@UseGuards(JwtAccessTokenGuard)
-@Roles(ERolesUser.ADMIN)
+// @ApiBearerAuth('token')
+// @UseGuards(JwtAccessTokenGuard)
+// @Roles(ERolesUser.ADMIN)
 export class FilesController {
 	constructor(private readonly filesService: FilesService) {}
 
