@@ -17,6 +17,10 @@ import { Roles } from "src/decorators/roles.decorator";
 export class MenuController {
 
     constructor(private readonly menuService: MenuService) {}
+
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get()
     async getMenuList(@Query() dto: PaginationDto) : Promise<AppResponse<{ type: string; items: Menu[] }[]>> {
         return {

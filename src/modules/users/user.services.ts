@@ -4,6 +4,7 @@ import { BaseServiceAbstract } from "src/services/base/base.abstract.service";
 import { User } from "./entity/user.entity";
 import { CreateNewUserDto } from "./dto/createNewUser.dto";
 import { UpdateUserDto } from "./dto/updateUser.dto";
+import * as moment from "moment";
 
 @Injectable()
 export class UsersService extends BaseServiceAbstract<User>{
@@ -15,7 +16,7 @@ export class UsersService extends BaseServiceAbstract<User>{
       }
     async create(dto: CreateNewUserDto) : Promise<User> {
         const { birthOfDate, ...data } = dto;
-        const convertedBirthOfDate = new Date(birthOfDate);
+        const convertedBirthOfDate = moment(birthOfDate, 'DD/MM/YYYY').toDate();
         return await this.userRepository.create({
             ...data,
             birthOfDate: convertedBirthOfDate

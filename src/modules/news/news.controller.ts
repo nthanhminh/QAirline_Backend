@@ -15,10 +15,14 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller('news')
 @ApiTags('news')
+@ApiBearerAuth('token')
 export class NewsController {
     constructor(
         private readonly newsService: NewsService
     ) {}
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Get()
     async getAllNews(@Query() dto: FilterNewsDto): Promise<AppResponse<FindAllResponse<News>>> {
         return {
@@ -26,6 +30,9 @@ export class NewsController {
         }
     }
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Get('groupByType')
     async getNewsByGroupByType(@Query() dto: PaginationDto) : Promise<AppResponse<{ type: string; items: News[] }[]>> {
         return {
@@ -33,6 +40,9 @@ export class NewsController {
         }
     }
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+	@UseGuards(JwtAccessTokenGuard)
     @Get(':id') 
     async getNewsById(
         @Param('id', new ParseUUIDPipe()) id: string, 

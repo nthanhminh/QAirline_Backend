@@ -13,8 +13,12 @@ import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('services')
 @ApiTags('services')
+@ApiBearerAuth('token')
 export class ServicesController {
     constructor(private readonly servicesHandler: ServiceHandler) {}
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get()
     async getAllServices(): Promise<AppResponse<{ type: string; items: Services[] }[]>> {
         return {

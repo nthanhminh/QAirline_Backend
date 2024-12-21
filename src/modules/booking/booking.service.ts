@@ -322,7 +322,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
             throw new NotFoundException('bookings.booking not found');
           }
           const checkCanEditBooking = this._checkCanEditBooking(booking.flight.departureTime, ECheckType.CANCELLED);
-          if(checkCanEditBooking) {
+          if(!checkCanEditBooking) {
             throw new BadRequestException('bookings.You cannot cancel this ticket because it is too late.');
           }
           await this.cancelTicketDetail(ticketsData, queryRunner);
@@ -345,7 +345,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
 
     _checkCancelBooking(tickets: Ticket[], ticketsData: CancelTicket[]) : boolean {
         const convertedTickets:Ticket[] = [].concat(tickets);
-        const convertedTicketsData: CancelTicket[] = [].concat(convertedTickets);
+        const convertedTicketsData: CancelTicket[] = [].concat(ticketsData);
         const mp: Map<string, number> = new Map();
         for (const ticket of convertedTickets) {
           mp.set(ticket.id, 1);
@@ -364,7 +364,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
         const now = convertNowToTimezone(ETimeZone.UTC);
         const convertedDepartureTime = moment(departureTime)
         const diffHour = convertedDepartureTime.diff(now, 'hour'); // Directly use 'diff' to get the difference in hours
-    
+        console.log(now, convertedDepartureTime, diffHour);
         switch (checkType) {
             case ECheckType.UPDATE:
                 if (diffHour > 3) {
@@ -372,7 +372,8 @@ export class BookingService extends BaseServiceAbstract<Booking> {
                 }
                 break;
             case ECheckType.CANCELLED:
-                if (diffHour > 72) {
+                if (diffHour > 3) {
+                    console.log('Cancelled test due to');
                     return true;
                 }
                 break;

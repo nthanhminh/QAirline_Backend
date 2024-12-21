@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Get, Inject, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { TicketService } from "./ticket.service";
 import { AppResponse } from "src/types/common.type";
 import { Ticket } from "./entity/ticket.entity";
@@ -10,9 +10,17 @@ import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 import { CheckinDto } from "./dto/checkin.dto";
 import { ETicketStatus } from "./enums/index.enum";
 import { NumberOfTicketsBooked } from "./type/index.type";
+import { JwtAccessTokenGuard } from "@modules/auth/guards/jwt-access-token.guard";
+import { RolesGuard } from "@modules/auth/guards/roles.guard";
+import { ERolesUser } from "@modules/users/enums/index.enum";
+import { Roles } from "src/decorators/roles.decorator";
 
 @Controller('tickets')
 @ApiTags('tickets')
+@Roles(ERolesUser.USER, ERolesUser.ADMIN)
+@UseGuards(RolesGuard)
+@UseGuards(JwtAccessTokenGuard)
+@ApiBearerAuth('token')
 export class TicketController {
     constructor(
         private readonly ticketService: TicketService,

@@ -16,6 +16,7 @@ import { PaginationDto } from "src/common/dto/pagination.dto";
 
 @Controller('flights')
 @ApiTags('flights')
+@ApiBearerAuth('token')
 export class FlightController {
     constructor(
         private readonly flightService:FlightService,
@@ -23,6 +24,9 @@ export class FlightController {
         private readonly dataSource: DataSource
     ) {}
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get('getFlightById')
     async getFlightById(@Query('id') id: string) : Promise<AppResponse<Flight>> {
         return {
@@ -30,6 +34,9 @@ export class FlightController {
         }
     }
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get('getAllFlight')
     async getAllFlight(@Query() dto: PaginationDto) : Promise<AppResponse<FindAllResponse<Flight>>> {
         return {
@@ -37,6 +44,9 @@ export class FlightController {
         }
     }
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get('getSeatClassPrice')
     async getSeatClassPrice(@Query('id') id: string) : Promise<AppResponse<SeatClassPrice[]>> {
         return {
@@ -44,6 +54,9 @@ export class FlightController {
         }
     }
 
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get('/getNumberOfSeatsForFlight')
     async getNumberOfSeatsForFlight(@Query('id') id: string) : Promise<AppResponse<any>> {
         const queryRunner = this.dataSource.createQueryRunner();
@@ -59,6 +72,10 @@ export class FlightController {
     //     }
     // }
 
+
+    @Roles(ERolesUser.USER, ERolesUser.ADMIN)
+    @UseGuards(RolesGuard)
+    @UseGuards(JwtAccessTokenGuard)
     @Get()
     async filterFlight(
         @Query() dto: FilterFlightDto
