@@ -48,10 +48,9 @@ export class CreateNewsDto {
     @ApiProperty({
         required: true,
     })
-    @IsArray({
-        each: true,
-    })
+    @IsArray()
     @IsUUID('4', { each: true })
+    @IsOptional()
     airportIds: string[]
 
     @ApiProperty({

@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsNotEmpty, IsNumber } from "class-validator";
 import { EMenuType } from "../enums/index.enum";
+import { IsThumbnailPath } from "src/validators/files.validator";
 
 export class CreateNewFoodDto {
     @ApiProperty({
@@ -19,6 +20,7 @@ export class CreateNewFoodDto {
         required: true,
     })
     @IsNotEmpty()
+    @IsThumbnailPath()
     thumbnail: string;
 
     @ApiProperty({

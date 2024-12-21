@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsUUID } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsUUID } from "class-validator";
 import { IsDateTimeDDMMYYYYHHMMSS, IsTimeFormat } from "src/validators/index.validator";
 
 export class CreateNewFlightDto {
@@ -33,6 +33,7 @@ export class CreateNewFlightDto {
         required: true,
     })
     @IsNotEmpty()
+    @IsOptional()
     description: string;
 
     @ApiProperty({

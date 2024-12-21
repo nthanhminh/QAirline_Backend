@@ -29,7 +29,11 @@ export class ServiceHandler extends BaseServiceAbstract<Services> {
     }
 
     async getAllServices(): Promise<{ type: string; items: Services[] }[]> {
-        const services = await this.serviceRepository.findAll({});
+        const services = await this.serviceRepository.findAll({}, {
+            order: {
+                createdAt: 'DESC',
+            },
+        });
     
         const groupedServices = services.items.reduce((acc, service) => {
             const type = service.type;

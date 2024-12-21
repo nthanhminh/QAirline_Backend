@@ -115,6 +115,43 @@ export function IsTimeFormat(validationOptions?: ValidationOptions) {
     };
   }
 
+  export function IsDateFormat(validationOptions?: ValidationOptions) {
+    return function (object: Object, propertyName: string) {
+      registerDecorator({
+        name: 'IsDateFormat',
+        target: object.constructor,
+        propertyName: propertyName,
+        options: validationOptions,
+        validator: {
+          validate(value: any, args: ValidationArguments) {
+            // Regex to check format dd-MM-yyyy
+            const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+            if (typeof value !== 'string') {
+              return false;
+            }
+  
+            // Validate against regex
+            if (!dateRegex.test(value)) {
+              return false;
+            }
+  
+            // Ensure the date is valid
+            const [day, month, year] = value.split('-').map(Number);
+            const date = new Date(year, month - 1, day);
+            return (
+              date.getFullYear() === year &&
+              date.getMonth() === month - 1 &&
+              date.getDate() === day
+            );
+          },
+          defaultMessage(args: ValidationArguments) {
+            return `${args.property} must be in the format dd-MM-yyyy`;
+          },
+        },
+      });
+    };
+  }
+
   export function IsStrongPassword(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({

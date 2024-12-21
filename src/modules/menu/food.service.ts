@@ -40,6 +40,9 @@ export class MenuService extends BaseServiceAbstract<Menu> {
         const menuItems = await this.menuRepository.findAll({}, {
             take: limit,
             skip: skip,
+            order: {
+                createdAt: 'ASC',
+            },
         });
     
         const groupedMenus = menuItems.items.reduce((acc, item) => {

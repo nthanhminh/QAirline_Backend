@@ -114,7 +114,10 @@ export class NewsService extends BaseServiceAbstract<News> {
         return await this.newsRepository.findAll(condition, {
             relations: ["airports"],
             take: limit,
-            skip: skip
+            skip: skip,
+            order: {
+                createdAt: 'ASC',
+            },
         });
     }
 

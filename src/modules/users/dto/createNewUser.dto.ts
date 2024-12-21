@@ -16,16 +16,14 @@ export class CreateNewUserDto {
         required: true
     })
     @IsNumber()
-    @Min(16, {
-        message: 'Age must be greater than or equal to 16.'
-    })
+    @IsNotEmpty()
     age: number;
 
     @ApiProperty({
         required: true
     })
     @IsNotEmpty()
-    // @IsStrongPassword()
+    @IsStrongPassword()
     password: string;
 
     @ApiProperty({
@@ -44,10 +42,4 @@ export class CreateNewUserDto {
         { message: 'Date of birth must be in the format dd/mm/yyyy.' }
     )
     birthOfDate: string;
-
-    @ApiProperty({
-        required: true
-    })
-    @IsEnum(ERolesUser)
-    role: ERolesUser
 }
