@@ -6,9 +6,7 @@ import { CreateNewTicketDto } from "./dto/createNewTicket.dto";
 import { MenuService } from "@modules/menu/food.service";
 import { BookingService } from "@modules/booking/booking.service";
 import { ServiceHandler } from "@modules/services/services.handler";
-import { StatusChangeDto } from "./dto/statusChange.dto";
-import { DataSource, ObjectLiteral, QueryRunner, UpdateResult } from "typeorm";
-import { FindAllResponse } from "src/types/common.type";
+import { DataSource, QueryRunner, UpdateResult } from "typeorm";
 import { Booking } from "@modules/booking/entity/booking.entity";
 import { UpdateTicketDto } from "./dto/updateNewTicket.dto";
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
@@ -16,6 +14,7 @@ import { EBookingStatus } from "@modules/booking/enums/index.enum";
 import { FlightService } from "@modules/flights/flight.service";
 import { CacheService } from "@modules/redis/redis.service";
 import { NumberOfTicketsBooked } from "./type/index.type";
+import * as moment from "moment";
 
 @Injectable()
 export class TicketService extends BaseServiceAbstract<Ticket> {
@@ -206,6 +205,14 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
                 throw new NotFoundException('tickets.ticket not found');
             }
             const flight = await this.flightService.getFlightWithDetailInfo(ticket.booking.flight.id);
+            const now = moment();
+            const flightDate = moment(flight.departureTime);
+            ///handle check the time for chekcin
+            if (now.isBefore(flightDate) && flightDate.diff(now, 'hours') <= 3) {
+                console.log("Now is before the flight date and exactly 3 hours apart.");
+            } else {
+                console.log("Condition not met.");
+            }
             const listSeatBooked = await this.getTicketFromFlightId(flight.id, queryRunner);
             const seatLayoutForPlaneType = flight.plane.seatLayoutId.seatLayoutForPlaneType;
             const seatTmpMap = await this.cacheService.getAllSeatInRedis();
