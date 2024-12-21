@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { RedisClientType } from 'redis'; // Import Redis client type
+import { RedisClientType } from 'redis'; 
 import { SeatInRedis } from './type/index.type';
 
 @Injectable()
@@ -8,9 +8,8 @@ export class CacheService {
     @Inject('REDIS_CLIENT') private readonly redisClient: RedisClientType
   ) {}
 
-  // Set a cache with a TTL (time to live)
   async setCache(key: string, value: any, ttl: number = 60): Promise<void> {
-    await this.redisClient.setEx(key, ttl, JSON.stringify(value));  // Set key with value and TTL
+    await this.redisClient.setEx(key, ttl, JSON.stringify(value));  
   }
 
   async setCacheWithSameTTL(key: string, value: any) {

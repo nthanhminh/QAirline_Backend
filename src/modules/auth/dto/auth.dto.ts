@@ -24,7 +24,6 @@ export class AuthDto {
         default: '12345678'
     })
     @IsNotEmpty()
-    // @IsStrongPassword()
     password: string
 }
 

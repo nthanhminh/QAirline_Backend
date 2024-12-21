@@ -4,11 +4,8 @@ import { Transform } from 'class-transformer';
 
 export class EmailDto {
 	@ApiProperty({
-		default: '@1bitlab.io',
+		default: 'admin@gmail.com',
 	})
-	// @Transform(params => {
-	// 	return params?.value.toLowerCase();
-	// })
 	@IsNotEmpty()
 	@MaxLength(50)
 	@IsEmail()

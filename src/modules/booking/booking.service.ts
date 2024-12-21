@@ -46,19 +46,16 @@ export class BookingService extends BaseServiceAbstract<Booking> {
           const { flightId, tickets, ...data } = dto;
           const customerId = user.id;
       
-          // Lấy thông tin khách hàng và chuyến bay
           const { customer, flight } = await this._getCustomerAndFlight(customerId, flightId);
       
           const seatClassPrices: SeatClassPrice[] = this.flightService.getSeatClassPriceForFlightUsingFlightsPrice(flight.flightsPrice);
 
-          // Xử lý ghế ngồi
           const convertedTickets = await this._handleTickets(
             tickets,
             flight.id,
             queryRunner
           );
       
-          // Tạo booking
           const booking = queryRunner.manager.create(Booking, {
             ...data,
             flight: flight,
@@ -91,7 +88,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       async _handleTickets(
         tickets: TicketBookingItem[],
         flightId: string,
-        // seatLayoutForPlaneType: SeatLayoutItem[],
         queryRunner: QueryRunner,
       ): Promise<TicketBookingItem[]> {
         const listSeatBooked = await this.tickeService.getTicketFromFlightId(flightId, queryRunner);
@@ -147,28 +143,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
             }
           }
           return ticket;
-          // if (ticket.seatValue) {
-          //   return ticket; // Nếu đã có seatValue, không cần xử lý
-          // }
-      
-          // for (const seat of seatLayoutForPlaneType) {
-          //   if (
-          //     seat.seatClass === ticket.seatClass &&
-          //     !listSeatBooked.includes(`${seat.name}-${seat.seatClass}`)
-          //   ) {
-          //     return { ...ticket, seatValue: seat.name }; // Gán ghế phù hợp
-          //   }
-          // }
-      
-          // throw new Error(`No available seat for ticket: ${JSON.stringify(ticket)}`);
-        });
-      
-        // convertedTickets.forEach((ticket) => {
-        //   if (listSeatBooked.includes(`${ticket.seatValue}-${ticket.seatClass}`)) {
-        //     throw new Error(`${ticket.seatValue} is already booked`);
-        //   }
-        // });
-      
+        });   
         return convertedTickets;
       }
       
@@ -231,24 +206,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
       
         return { customer, flight };
       }
-
-    // async updateBooking(id: string, dto: UpdateBookingDto) : Promise<UpdateResult> {
-    //     const { customerId, flightId, ...data} = dto;
-    //     const customer = await this.userService.findUserById(customerId);
-    //     if(!customer) {
-    //         throw new NotFoundException('users.user not found');
-    //     }
-    //     const flight = await this.flightService.findOneByCondition({id:flightId});
-    //     if(!flight) {
-    //         throw new NotFoundException('flights.flight not found');
-    //     }
-    //     return await this.bookingRepository.update(id, {
-    //         ...data,
-    //         flight: flight,
-    //         customer: customer
-    //     })
-    // }
-
     async updateBooking(id: string, dto: EditBookingDto) : Promise<UpdateResult> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
@@ -363,8 +320,7 @@ export class BookingService extends BaseServiceAbstract<Booking> {
     _checkCanEditBooking(departureTime: Date, checkType: ECheckType): boolean {
         const now = convertNowToTimezone(ETimeZone.UTC);
         const convertedDepartureTime = moment(departureTime)
-        const diffHour = convertedDepartureTime.diff(now, 'hour'); // Directly use 'diff' to get the difference in hours
-        console.log(now, convertedDepartureTime, diffHour);
+        const diffHour = convertedDepartureTime.diff(now, 'hour'); 
         switch (checkType) {
             case ECheckType.UPDATE:
                 if (diffHour > 3) {
@@ -373,7 +329,6 @@ export class BookingService extends BaseServiceAbstract<Booking> {
                 break;
             case ECheckType.CANCELLED:
                 if (diffHour > 3) {
-                    console.log('Cancelled test due to');
                     return true;
                 }
                 break;

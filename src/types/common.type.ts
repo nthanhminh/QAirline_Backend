@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-// import { User } from '@modules/users/entities/user.entity';
 
 export enum SORT_TYPE {
 	'DESC' = 'desc',
@@ -30,9 +29,6 @@ export class LoginResponse {
 
 	@ApiProperty()
 	refreshToken: string;
-
-	// @ApiProperty({ type: User })
-	// user: User;
 }
 
 export type FindAllResponse<T> = { count: number; items: T[] };

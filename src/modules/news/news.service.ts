@@ -85,7 +85,7 @@ export class NewsService extends BaseServiceAbstract<News> {
     
         const updateData: any = {
             ...data,
-            endTime: endTimeDate || news.endTime, // Ensure not overriding if endTime is not provided
+            endTime: endTimeDate || news.endTime, 
         };
     
         if (airportIds && airportIds.length > 0) {
@@ -94,7 +94,7 @@ export class NewsService extends BaseServiceAbstract<News> {
     
         try {
             const result = await this.newsRepository.update(id, updateData);
-            return result; // Returning the update result
+            return result; 
         } catch (error) {
             throw new Error('Error updating news: ' + error.message);
         }

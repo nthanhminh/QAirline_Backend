@@ -10,23 +10,18 @@ export function IsDateTimeDDMMYYYYHHMMSS(validationOptions?: ValidationOptions) 
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          console.log('start validate');
-          // Kiểm tra định dạng dd-MM-yyyy HH:mm:ss
           const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} ([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/;
 
           if (typeof value !== 'string' || !regex.test(value)) {
-            return false; // Không đúng định dạng
+            return false; 
           }
 
-          // Tách ngày, tháng, năm, giờ, phút, giây từ chuỗi
           const [datePart, timePart] = value.split(' ');
           const [day, month, year] = datePart.split('-').map(Number);
           const [hours, minutes, seconds] = timePart.split(':').map(Number);
 
-          // Tạo đối tượng Date
           const inputDate = new Date(year, month - 1, day, hours, minutes, seconds);
 
-          // Kiểm tra nếu ngày không hợp lệ
           if (
             inputDate.getFullYear() !== year ||
             inputDate.getMonth() !== month - 1 ||
@@ -37,11 +32,8 @@ export function IsDateTimeDDMMYYYYHHMMSS(validationOptions?: ValidationOptions) 
           ) {
             return false;
           }
-
-          // So sánh với thời gian hiện tại
-          console.log(inputDate, new Date());
           const now = new Date();
-          return inputDate > now; // Phải sau thời gian hiện tại
+          return inputDate > now; 
         },
         defaultMessage(args: ValidationArguments) {
           return `${args.property} must be in the format dd-MM-yyyy HH:mm:ss and must be after the current time`;
@@ -100,7 +92,6 @@ export function IsTimeFormat(validationOptions?: ValidationOptions) {
         options: validationOptions,
         validator: {
           validate(value: any, args: ValidationArguments) {
-            // Regex chỉ kiểm tra định dạng HH:mm:ss
             const timeRegex = /^([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
             if (typeof value !== 'string') {
               return false;
@@ -124,18 +115,15 @@ export function IsTimeFormat(validationOptions?: ValidationOptions) {
         options: validationOptions,
         validator: {
           validate(value: any, args: ValidationArguments) {
-            // Regex to check format dd-MM-yyyy
             const dateRegex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
             if (typeof value !== 'string') {
               return false;
             }
   
-            // Validate against regex
             if (!dateRegex.test(value)) {
               return false;
             }
-  
-            // Ensure the date is valid
+
             const [day, month, year] = value.split('-').map(Number);
             const date = new Date(year, month - 1, day);
             return (
@@ -161,7 +149,6 @@ export function IsTimeFormat(validationOptions?: ValidationOptions) {
             options: validationOptions,
             validator: {
                 validate(value: any, args: ValidationArguments) {
-                    // Kiểm tra mật khẩu
                     const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,14}$/;
                     return typeof value === 'string' && strongPasswordRegex.test(value) && value.trim() !== '';
                 },

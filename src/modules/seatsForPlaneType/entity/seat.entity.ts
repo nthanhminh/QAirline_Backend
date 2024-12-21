@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from '@modules/shared/base/base.entity';
-import { EPlaneType } from '@modules/planes/enums/index.enum'; // Đảm bảo bạn có enum này
+import { EPlaneType } from '@modules/planes/enums/index.enum';
 import { Plane } from '@modules/planes/entity/plane.entity';
 import { SeatLayoutItem } from '../types/index.type';
 

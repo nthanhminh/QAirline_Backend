@@ -29,6 +29,5 @@ export class SignInDto {
 	@IsNotEmpty({
 		message: 'auths.Password login should not be empty',
 	})
-	// @IsStrongPassword()
 	password: string;
 }

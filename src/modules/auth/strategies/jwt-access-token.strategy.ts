@@ -34,11 +34,6 @@ export class JwtAccessTokenStrategy extends PassportStrategy(Strategy) {
 			throw new UnauthorizedException('auths.Account inactive');
 		}
 
-		// if (user.currentAccessToken !== uuidAccessToken && user.role === ERolesUser.USER)
-		// 	throw new UnauthorizedException(
-		// 		'auths.Account is signed in on another device',
-		// 	);
-
 		return user;
 	}
 }

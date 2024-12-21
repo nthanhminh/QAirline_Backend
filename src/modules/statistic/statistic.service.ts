@@ -14,22 +14,12 @@ import { EBookingStatus } from "@modules/booking/enums/index.enum";
 
 export class StatisticService {
     constructor(
-        // @Inject('BOOKING_REPOSITORY') 
-        // private readonly bookingRepository: BookingRepository,
-
-        // @Inject('FLIGHT_REPOSITORY')
-        // private readonly flightRepository: FlightRepository,
-
-        // @Inject('TICKET_REPOSITORY')
-        // private readonly ticketRepository: FlightRepository,
-
         @Inject('DATA_SOURCE')
         private readonly dataSource: DataSource
     ) {}
 
     async getFlightStatistics(status: EFlightStatus) {
-        console.log(status);
-        const test = await Promise.all([
+        const data = await Promise.all([
         this.dataSource.getRepository(Flight)
             .createQueryBuilder('flight')
             .where('DATE_TRUNC(\'month\', flight.departureTime) = DATE_TRUNC(\'month\', CURRENT_DATE)')
@@ -42,8 +32,7 @@ export class StatisticService {
             .andWhere('flight.status = :status', { status: status })
             .getCount(),
         ]);
-        console.log(test);
-        return test;
+        return data;
     }
 
     async getTotalRevenue() {

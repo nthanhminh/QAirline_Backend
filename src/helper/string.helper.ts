@@ -1,8 +1,7 @@
 export const extractTokenFromRequest = (request): string => {
-	// Extract the token from the Authorization header
 	const authorizationHeader = request?.headers?.authorization;
 	if (authorizationHeader && authorizationHeader?.startsWith('Bearer ')) {
-		return authorizationHeader.slice(7); // 'Bearer ' is 7 characters long
+		return authorizationHeader.slice(7); 
 	}
 
 	return null;

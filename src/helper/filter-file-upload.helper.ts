@@ -26,19 +26,10 @@ export const trimfilenametobytes = (filename, maxbytes = 255) => {
 	const ext = extname(filename);
 	const base = basename(filename, ext);
 
-	// Calculate the length of the file extension in bytes
 	const extLength = Buffer.from(ext).length;
-
-	// Calculate the maximum length for the base filename
 	const maxBaseLength = Math.max(0, maxbytes - extLength);
-
-	// Truncate the base filename
 	const truncatedBase = truncate(base, maxBaseLength);
-
-	// Concatenate the truncated base filename with the file extension
 	const truncatedFilename = truncatedBase + ext;
-
-	// Ensure the final filename length is within the specified limit
 	return truncate(truncatedFilename, maxbytes);
 };
 

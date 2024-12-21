@@ -8,7 +8,7 @@ export interface BaseRepositoryInterface<T> {
     findOneByCondition(condition: FindOptionsWhere<T>, options?: FindOneOptions<T>): Promise<T | null>;
     findAll(condition: FindOptionsWhere<T>, options?: FindOneOptions<T>): Promise<FindAllResponse<T>>;
     find(condition: FindOptionsWhere<T>, options?: FindOneOptions<T>): Promise<T[]>;
-    update(id: string, dto: DeepPartial<T>): Promise<UpdateResult>;  // Ensure DeepPartial<T> is used
+    update(id: string, dto: DeepPartial<T>): Promise<UpdateResult>; 
     softDelete(id: string): Promise<UpdateResult>;
     permanentlyDelete(id: string): Promise<DeleteResult>;
     updateMany(filter: FindOptionsWhere<T>, dto: DeepPartial<T>): Promise<UpdateResult>;

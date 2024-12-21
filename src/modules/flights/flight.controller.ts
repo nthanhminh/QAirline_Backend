@@ -65,14 +65,6 @@ export class FlightController {
         }
     }
 
-    // @Get('test')
-    // async test() {
-    //     return {
-    //         data: await this.flightService.ge
-    //     }
-    // }
-
-
     @Roles(ERolesUser.USER, ERolesUser.ADMIN)
     @UseGuards(RolesGuard)
     @UseGuards(JwtAccessTokenGuard)
@@ -82,7 +74,6 @@ export class FlightController {
     ) : Promise<AppResponse<FindAllResponse<ObjectLiteral>>> {
         return {
             data: await this.flightService.filterFlight(dto),
-            // data: await this.flightService.test()
         }
     }
 

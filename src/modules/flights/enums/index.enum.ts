@@ -6,8 +6,6 @@ export enum ESortFlightByPrice {
 export enum ESortFlightByDeparture {
     DESC_DEPARTURE_TIME = "DESC_DEPARTURE_TIME",
     ASC_DEPARTURE_TIME = "ASC_DEPARTURE_TIME",
-    // DESC_DURATION = "DESC_DURATION",
-    // ASC_DURATION = "ASC_DURATION",
 }
 
 export enum EFlightStatus {

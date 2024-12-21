@@ -75,11 +75,9 @@ export class FlightService extends BaseServiceAbstract<Flight> {
       }
       const currentDepartureTime = moment(flight.departureTime);
       const convertedDepartureTime = moment(departureTime, 'DD-MM-YYYY HH:mm:ss').toDate();
-      console.log(currentDepartureTime, convertedDepartureTime, moment(), (currentDepartureTime.isBefore(convertedDepartureTime)));
       if(currentDepartureTime.isBefore(convertedDepartureTime)) {
         const now = moment();
         const diff = now.diff(currentDepartureTime, 'hours');
-        console.log(diff);
         if(diff >= -3) {
           data["status"] = EFlightStatus.DELAYED;
         }
@@ -164,29 +162,6 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           });
         }
         
-        // switch (sortedBy) {
-        //   case ESortFlightBy.ASC_DEPARTURE_TIME:
-        //     queryBuilder.orderBy("flight.departureTime", "ASC");
-        //     break;
-        //   case ESortFlightBy.DESC_DEPARTURE_TIME:
-        //     queryBuilder.orderBy("flight.departureTime", "DESC");
-        //     break;
-        //   case ESortFlightBy.ASC_DURATION:
-        //     queryBuilder.orderBy("flight.duration", "ASC");
-        //     break;
-        //   case ESortFlightBy.DESC_DURATION:
-        //     queryBuilder.orderBy("flight.duration", "DESC");
-        //     break;
-        //   case ESortFlightBy.ASC_PRICE:
-        //     queryBuilder.orderBy("min_price", "ASC"); 
-        //     break;
-        //   case ESortFlightBy.DESC_PRICE:
-        //     queryBuilder.orderBy("min_price", "DESC"); 
-        //     break;
-        //   default:
-        //     queryBuilder.orderBy("flight.departureTime", "ASC");
-        // }
-
         if(sortedByPrice) {
           if(sortedByPrice === ESortFlightByPrice.ASC_PRICE) {
             queryBuilder.addOrderBy("min_price", "ASC"); 
@@ -211,7 +186,6 @@ export class FlightService extends BaseServiceAbstract<Flight> {
     }
 
     async getFlightWithDetailInfo(flightId: string) : Promise<Flight> {
-        console.log("flightId",flightId);
         const flight = await this.dataSource
           .getRepository(Flight) 
           .createQueryBuilder("flight")
@@ -233,7 +207,6 @@ export class FlightService extends BaseServiceAbstract<Flight> {
           .getOne(); 
         if(!flight) {
           return null;
-          // throw new NotFoundException("flights.flight not found");
         }
         return flight;
     }
@@ -302,7 +275,7 @@ export class FlightService extends BaseServiceAbstract<Flight> {
             .leftJoin('flight_plane.seatLayoutId', 'flight_plane_seatLayout')
             .where('flight.id = :flightId', { flightId: id })
             .select([
-              'flight_plane_seatLayout.numberOfBusinessSeats AS numberOfBusinessSeats', // Alias ngắn gọn
+              'flight_plane_seatLayout.numberOfBusinessSeats AS numberOfBusinessSeats', 
               'flight_plane_seatLayout.numberOfPreminumEconomySeats AS numberOfPreminumEconomySeats',
               'flight_plane_seatLayout.numberOfEconomySeats AS numberOfEconomySeats',
               'flight_plane_seatLayout.numberOfBasicSeats AS numberOfBasicSeats',

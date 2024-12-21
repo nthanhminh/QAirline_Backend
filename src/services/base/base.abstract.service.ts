@@ -3,8 +3,8 @@ import { BaseRepositoryInterface } from '@repositories/base/base.interface.repos
 import { FindAllResponse } from 'src/types/common.type';
 import { BaseServiceInterface } from './base.interface.service';
 import { FindOptionsWhere, UpdateResult, DeleteResult } from 'typeorm';
-import { DeepPartial } from 'typeorm'; // Ensure you import DeepPartial
-import { In } from 'typeorm'; // Import In for removeMany
+import { DeepPartial } from 'typeorm'; 
+import { In } from 'typeorm'; 
 
 export abstract class BaseServiceAbstract<T extends BaseEntity>
     implements BaseServiceInterface<T>

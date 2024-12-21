@@ -207,7 +207,7 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             const flight = await this.flightService.getFlightWithDetailInfo(ticket.booking.flight.id);
             const now = moment();
             const flightDate = moment(flight.departureTime);
-            ///handle check the time for chekcin
+            ///handle check the time for checkin
             if (now.isBefore(flightDate) && flightDate.diff(now, 'hours') <= 3) {
                 console.log("Now is before the flight date and exactly 3 hours apart.");
             } else {

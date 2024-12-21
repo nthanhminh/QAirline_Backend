@@ -17,12 +17,8 @@ export class JwtAccessTokenGuard extends AuthGuard('jwt') {
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest();
-		const token = getTokenFromHeader(request.headers); // Get the token from the header
-		// const isBlackList = await this.tokenBlacklistService.isTokenBlacklisted(
-		// 	token,
-		// );
+		const token = getTokenFromHeader(request.headers); 
 
-		// Check if the token is revoked
 		if (token && this.tokenBlacklistService.isTokenRevoked(token)) {
 			return false; 
 		}
@@ -33,17 +29,15 @@ export class JwtAccessTokenGuard extends AuthGuard('jwt') {
 		]);
 
 		if (isPublic) {
-			return true; // Allow access to public endpoints
+			return true;
 		}
 
-		// Call the parent canActivate method and ensure it returns a Promise<boolean>
 		const canActivate = super.canActivate(context);
 
-		// If canActivate is an Observable, convert it to a Promise
 		if (canActivate instanceof Observable) {
 			return await firstValueFrom(canActivate);
 		}
 
-		return canActivate; // It is already a boolean or a Promise<boolean>
+		return canActivate; 
 	}
 }

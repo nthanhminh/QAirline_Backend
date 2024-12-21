@@ -28,9 +28,9 @@ import { trimfilenametobytes } from 'src/helper/filter-file-upload.helper';
 
 @Controller('files')
 @ApiTags('files')
-// @ApiBearerAuth('token')
-// @UseGuards(JwtAccessTokenGuard)
-// @Roles(ERolesUser.ADMIN, ERolesUser.STAFF)
+@ApiBearerAuth('token')
+@UseGuards(JwtAccessTokenGuard)
+@Roles(ERolesUser.ADMIN)
 export class FilesController {
 	constructor(private readonly filesService: FilesService) {}
 
@@ -41,7 +41,7 @@ export class FilesController {
 	@UseInterceptors(
 		FilesInterceptor('files', 50, {
 			limits: {
-				fileSize: 1024 * 1024 * 5, // max file size: 5MB
+				fileSize: 1024 * 1024 * 5,
 			},
 			storage: diskStorage({
 				destination: './assets/uploads',
@@ -66,7 +66,7 @@ export class FilesController {
 			type: 'object',
 			properties: {
 				files: {
-					type: 'array', // 👈  array of files
+					type: 'array',
 					items: {
 						type: 'string',
 						format: 'binary',

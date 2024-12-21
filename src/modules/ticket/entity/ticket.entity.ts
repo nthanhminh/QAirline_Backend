@@ -73,17 +73,17 @@ export class Ticket extends BaseEntity {
 
     @ManyToMany(() => Menu, (menu) => menu.tickets)
     @JoinTable({
-        name: 'menu_tickets',  // Custom junction table name
-        joinColumns: [{ name: 'ticket_id', referencedColumnName: 'id' }], // Custom join column
-        inverseJoinColumns: [{ name: 'menu_id', referencedColumnName: 'id' }] // Custom inverse join column
+        name: 'menu_tickets',  
+        joinColumns: [{ name: 'ticket_id', referencedColumnName: 'id' }], 
+        inverseJoinColumns: [{ name: 'menu_id', referencedColumnName: 'id' }] 
     })
     menus: Menu[];
 
     @ManyToMany(() => Services, (service) => service.tickets)
     @JoinTable({
-        name: 'services_tickets',  // Custom junction table name
-        joinColumns: [{ name: 'ticket_id', referencedColumnName: 'id' }], // Custom join column
-        inverseJoinColumns: [{ name: 'services_id', referencedColumnName: 'id' }] // Custom inverse join column
+        name: 'services_tickets',  
+        joinColumns: [{ name: 'ticket_id', referencedColumnName: 'id' }], 
+        inverseJoinColumns: [{ name: 'services_id', referencedColumnName: 'id' }] 
     })
     services: Services[];
 }

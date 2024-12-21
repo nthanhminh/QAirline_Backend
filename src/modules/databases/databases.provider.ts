@@ -8,7 +8,7 @@ export const databaseProviders = [
     provide: 'DATA_SOURCE',
     useFactory: async () => {
       const dataSource = new DataSource({
-        type: 'postgres', // Change to 'postgres' for PostgreSQL
+        type: 'postgres', 
         useUTC: true,
         database: 'qairline_database', 
         entities: [

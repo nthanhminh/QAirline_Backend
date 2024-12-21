@@ -44,7 +44,6 @@ export class User extends BaseEntity {
   @Exclude()
   @Column({
     type: 'text',
-    // select: false,
     default: null
   })
   currentAccessToken: string;
@@ -52,7 +51,6 @@ export class User extends BaseEntity {
   @Exclude()
   @Column({
     type: 'text',
-    // select: false,
     default: null
   })
   refreshToken: string;

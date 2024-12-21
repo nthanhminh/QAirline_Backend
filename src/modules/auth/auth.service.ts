@@ -1,4 +1,3 @@
-// import { User } from '@modules/users/entities/user.entity';
 import {
 	BadRequestException,
 	ConflictException,
@@ -10,7 +9,6 @@ import {
 	UnprocessableEntityException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokenPayload } from './interfaces/token.interface';
 import * as argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
@@ -26,7 +24,6 @@ import { SendCodeDto, VerifyCodeDto } from './dto/sendCode.dto';
 import { ERolesUser, EStatusUser } from '@modules/users/enums/index.enum';
 import { UpdatePasswordByCodeDto, UpdatePasswordDto } from './dto/updatePasswordByCode.dto';
 import { TokenType } from './type/index.type';
-import { UpdateResult } from 'typeorm';
 import { EEnvironmentLogin } from './enums';
 
 @Injectable()
@@ -162,7 +159,7 @@ export class AuthService {
 		if (!passwordMatches)
 			throw new BadRequestException('Password is incorrect');
 		const tokens = await this.getTokens(user.id, user.name, user.role);
-		await this.redisService.setCache(`${user.id}:refreshToken`, tokens.refreshToken, 60);
+		await this.redisService.setCache(`${user.id}:refreshToken`, tokens.refreshToken, 604800);
 		await this.updateRefreshToken(user.id, tokens.refreshToken);
 		await this.updateAccessToken(user.id, tokens.accessToken);
 		return {
@@ -215,7 +212,7 @@ export class AuthService {
 				},
 				{
 					secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-					expiresIn: '1d',
+					expiresIn: '30m',
 				},
 			),
 			this.jwtService.signAsync(
@@ -241,10 +238,12 @@ export class AuthService {
 			throw new ForbiddenException('Access Denied');
 		const tokenInRedis = await this.redisService.getCache(`${user.id}:refreshToken`);
 		if(!tokenInRedis) {
+			console.log('No refresh token in redis service');
 			throw new ForbiddenException('Access Denied');
 		}
 		const refreshTokenMatches = tokenInRedis === user.refreshToken;
 		if (!refreshTokenMatches) {
+			console.log('No refresh token in redis service not match');
 			throw new ForbiddenException('Access Denied');
 		}
 		const tokens = await this.getTokens(user.id, user.name, user.role);

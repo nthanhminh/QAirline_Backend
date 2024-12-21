@@ -21,11 +21,4 @@ export class CreateNewPlaneDto {
     })
     @IsNotEmpty()
     description: string;
-
-    // @ApiProperty({
-    //     required: true,
-    // })
-    // @IsNotEmpty()
-    // @IsUUID()
-    // seatLayoutId: string;
 }
