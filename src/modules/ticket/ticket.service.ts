@@ -15,6 +15,7 @@ import { FlightService } from "@modules/flights/flight.service";
 import { CacheService } from "@modules/redis/redis.service";
 import { NumberOfTicketsBooked } from "./type/index.type";
 import * as moment from "moment";
+import { ETicketStatus } from "./enums/index.enum";
 
 @Injectable()
 export class TicketService extends BaseServiceAbstract<Ticket> {
@@ -198,11 +199,14 @@ export class TicketService extends BaseServiceAbstract<Ticket> {
             const ticket = await this.ticketRepository.findOneById(
                 id,
                 {
-                    relations: ['booking']
+                    relations: ['booking'],
                 }
             );
             if(!ticket) {
                 throw new NotFoundException('tickets.ticket not found');
+            }
+            if(ticket.status === EBookingStatus.CANCELLED) {
+                throw new NotFoundException('tickets.ticket cancelled');
             }
             const flight = await this.flightService.getFlightWithDetailInfo(ticket.booking.flight.id);
             const now = moment();

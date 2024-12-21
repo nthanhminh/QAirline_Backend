@@ -1,27 +1,31 @@
 import { ESeatClass } from "@modules/seatsForPlaneType/enums/index.enum";
 import { ECustomerType } from "../enums/index.enum";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class TicketBookingItem {
     @ApiProperty({
         required: true,
     })
+    @IsNotEmpty()
     customerName: string;
 
     @ApiProperty({
         required: true,
     })
+    @IsNotEmpty()
     customerType: ECustomerType;
 
     @ApiProperty({
         required: true,
     })
+    @IsNotEmpty()
     customerSSID: string;
 
     @ApiProperty({
         required: true,
     })
+    @IsEmail()
     customerEmail: string;
 
     @ApiProperty({
@@ -33,6 +37,7 @@ export class TicketBookingItem {
     @ApiProperty({
         required: true,
     })
+    @IsEnum(ESeatClass)
     seatClass: ESeatClass;
 
     @ApiProperty({
