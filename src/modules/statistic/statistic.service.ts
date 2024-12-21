@@ -28,7 +28,8 @@ export class StatisticService {
     ) {}
 
     async getFlightStatistics(status: EFlightStatus) {
-        return await Promise.all([
+        console.log(status);
+        const test = await Promise.all([
         this.dataSource.getRepository(Flight)
             .createQueryBuilder('flight')
             .where('DATE_TRUNC(\'month\', flight.departureTime) = DATE_TRUNC(\'month\', CURRENT_DATE)')
@@ -41,6 +42,8 @@ export class StatisticService {
             .andWhere('flight.status = :status', { status: status })
             .getCount(),
         ]);
+        console.log(test);
+        return test;
     }
 
     async getTotalRevenue() {
@@ -148,11 +151,11 @@ export class StatisticService {
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthActive, flightsLastMonthActive)
             },
             "DONE": {
-                flightsThisMonth: flightsLastMonthDone,
+                flightsThisMonth: flightsThisMonthDone,
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthDone, flightsLastMonthDone),
             },
             "CANCELLED": {
-                flightsThisMonth: flightsLastMonthCancelled,
+                flightsThisMonth: flightsThisMonthCancelled,
                 diffrentLastMonth: this._getFlightStatisticsConsider(flightsThisMonthCancelled, flightsLastMonthCancelled),
             },
             "REVENUE": {
