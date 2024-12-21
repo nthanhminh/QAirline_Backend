@@ -12,6 +12,6 @@ import { SharedModule } from "@modules/shared/shared.module";
     ],
     exports: [...userProviders, UsersService],
     providers: [...userProviders, UsersService],
-    controllers: [UsersController]
+    controllers: []
 })
 export class UserModule {}
