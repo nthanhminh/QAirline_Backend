@@ -38,7 +38,8 @@ export class HttpErrorFilter implements ExceptionFilter {
 			statusCode,
 			message: this._checkSpencialMessageError(message)
 				? message
-				: await this.i18n.translate(`${path}.${messageInI18}`),
+				: messageInI18,
+				// : await this.i18n.translate(`${path}.${messageInI18}`),
 			error: error || message,
 		};
 
